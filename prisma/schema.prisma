@@ -1,0 +1,374 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============ USER ============
+model User {
+  id            String    @id @default(cuid())
+  firstName     String
+  lastName      String
+  email         String    @unique
+  password      String
+  role          Role      @default(CUSTOMER)
+  emailVerified Boolean   @default(false)
+  image         String?
+  resetToken       String?
+  resetTokenExpiry DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  orders      Order[]
+  reviews     Review[]
+  wishlist    Wishlist[]
+  addresses   Address[]
+  cartItems   CartItem[]
+  rewards     Reward?
+  affiliate   Affiliate?
+
+  @@map("users")
+}
+
+enum Role {
+  CUSTOMER
+  ADMIN
+}
+
+// ============ ADDRESS ============
+model Address {
+  id         String   @id @default(cuid())
+  userId     String
+  firstName  String
+  lastName   String
+  phone      String
+  address    String
+  city       String
+  state      String
+  postcode   String
+  country    String   @default("Australia")
+  isDefault  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user  User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orders Order[]
+
+  @@map("addresses")
+}
+
+// ============ CATEGORY ============
+model Category {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  slug        String    @unique
+  description String?
+  image       String?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  products Product[]
+
+  @@map("categories")
+}
+
+// ============ BRAND ============
+model Brand {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  slug        String   @unique
+  description String?
+  logo        String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  products Product[]
+
+  @@map("brands")
+}
+
+// ============ PRODUCT ============
+model Product {
+  id             String    @id @default(cuid())
+  name           String
+  slug           String    @unique
+  description    String
+  shortDescription String?
+  price          Decimal   @db.Decimal(10, 2)
+  compareAtPrice Decimal?  @db.Decimal(10, 2)
+  brandId        String
+  categoryId     String
+  isActive       Boolean   @default(true)
+  isFeatured     Boolean   @default(false)
+  isNew          Boolean   @default(false)
+  inStock        Boolean   @default(true)
+  stockQuantity  Int       @default(0)
+  rating         Float     @default(0)
+  reviewCount    Int       @default(0)
+  metaTitle      String?
+  metaDescription String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  brand       Brand        @relation(fields: [brandId], references: [id])
+  category    Category     @relation(fields: [categoryId], references: [id])
+  images      ProductImage[]
+  colors      ProductColor[]
+  specs       ProductSpec[]
+  reviews     Review[]
+  orderItems  OrderItem[]
+  cartItems   CartItem[]
+  wishlist    Wishlist[]
+
+  @@map("products")
+}
+
+// ============ PRODUCT IMAGE ============
+model ProductImage {
+  id        String   @id @default(cuid())
+  productId String
+  url       String
+  alt       String?
+  sortOrder Int      @default(0)
+  isMain    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("product_images")
+}
+
+// ============ PRODUCT COLOR ============
+model ProductColor {
+  id         String   @id @default(cuid())
+  productId  String
+  name       String
+  hexCode    String?
+  imageUrl   String?
+  inStock    Boolean  @default(true)
+  createdAt  DateTime @default(now())
+
+  product    Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
+  orderItems OrderItem[]
+
+  @@map("product_colors")
+}
+
+// ============ PRODUCT SPEC ============
+model ProductSpec {
+  id        String @id @default(cuid())
+  productId String
+  label     String
+  value     String
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("product_specs")
+}
+
+// ============ CART ITEM ============
+model CartItem {
+  id         String   @id @default(cuid())
+  userId     String
+  productId  String
+  color      String   @default("Default")
+  quantity   Int      @default(1)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id])
+
+  @@map("cart_items")
+}
+
+// ============ ORDER ============
+model Order {
+  id              String       @id @default(cuid())
+  orderNumber     String       @unique
+  userId          String
+  addressId       String?
+  subtotal        Decimal      @db.Decimal(10, 2)
+  shipping        Decimal      @db.Decimal(10, 2) @default(0)
+  tax             Decimal      @db.Decimal(10, 2) @default(0)
+  total           Decimal      @db.Decimal(10, 2)
+  status          OrderStatus  @default(PENDING)
+  paymentMethod   String       @default("crypto")
+  cryptoCurrency  String?
+  cryptoAmount    String?
+  cryptoAddress   String?
+  paymentId       String?
+  paymentStatus   PaymentStatus @default(PENDING)
+  notes           String?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  user    User       @relation(fields: [userId], references: [id])
+  address Address?   @relation(fields: [addressId], references: [id])
+  items   OrderItem[]
+  affiliateReferrals AffiliateReferral[]
+
+  @@map("orders")
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  WAITING_CONFIRMATION
+  CONFIRMED
+  EXPIRED
+  FAILED
+  REFUNDED
+}
+
+// ============ ORDER ITEM ============
+model OrderItem {
+  id        String  @id @default(cuid())
+  orderId   String
+  productId String
+  color     String?
+  colorId   String?
+  quantity  Int
+  price     Decimal @db.Decimal(10, 2)
+  createdAt DateTime @default(now())
+
+  order   Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product       @relation(fields: [productId], references: [id])
+  colorRel ProductColor? @relation(fields: [colorId], references: [id])
+
+  @@map("order_items")
+}
+
+// ============ REVIEW ============
+model Review {
+  id        String   @id @default(cuid())
+  productId String
+  userId    String
+  rating    Int
+  title     String?
+  content   String
+  isVerified Boolean @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("reviews")
+}
+
+// ============ REWARD ============
+model Reward {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  points    Int      @default(0)
+  tier      String   @default("BRONZE")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("rewards")
+}
+
+// ============ WISHLIST ============
+model Wishlist {
+  id        String   @id @default(cuid())
+  userId    String
+  productId String
+  createdAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+  @@map("wishlist")
+}
+
+// ============ BLOG POST ============
+model BlogPost {
+  id        String   @id @default(cuid())
+  title     String
+  slug      String   @unique
+  excerpt   String
+  content   String
+  category  String
+  image     String?
+  author    String
+  published Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("blog_posts")
+}
+
+// ============ CAREER ============
+model Career {
+  id          String   @id @default(cuid())
+  title       String
+  slug        String   @unique
+  department  String
+  location    String
+  type        String   @default("Full-time")
+  description String
+  requirements String
+  salary      String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("careers")
+}
+
+// ============ AFFILIATE ============
+model Affiliate {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  code        String   @unique
+  clicks      Int      @default(0)
+  signups     Int      @default(0)
+  purchases   Int      @default(0)
+  commission  Decimal  @default(0) @db.Decimal(10, 2)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user      User                  @relation(fields: [userId], references: [id])
+  referrals AffiliateReferral[]
+
+  availableBalance Decimal  @default(0) @db.Decimal(10, 2)
+  totalEarned      Decimal  @default(0) @db.Decimal(10, 2)
+  totalWithdrawn   Decimal  @default(0) @db.Decimal(10, 2)
+  storeCredit      Decimal  @default(0) @db.Decimal(10, 2)
+  walletAddress    String?
+
+  @@map("affiliates")
+}
+
+// ============ AFFILIATE REFERRAL ============
+model AffiliateReferral {
+  id          String   @id @default(cuid())
+  affiliateId String
+  orderId     String?
+  commission  Decimal  @default(0) @db.Decimal(10, 2)
+  status      String   @default("pending")
+  createdAt   DateTime @default(now())
+
+  affiliate Affiliate @relation(fields: [affiliateId], references: [id])
+  order     Order?    @relation(fields: [orderId], references: [id])
+
+  @@map("affiliate_referrals")
+}
