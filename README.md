@@ -64,14 +64,3 @@
 git clone https://github.com/josuekelly-droid/cryptoelectro-au.git
 cd cryptoelectro-au
 npm install
-
-
-MIT License — © 2026**[cryptoelectro.au](https://cryptoelectro.au)**
-
-
-
-<p align="center"> <img src="./public/og-image.png" alt="Cryptoelectro-au Banner" width="600"> </p><p align="center"> <strong>Australia's Premium Electronics Marketplace</strong><br> Pay with Crypto. Shop with Confidence. </p> ```
-
-
-
-
