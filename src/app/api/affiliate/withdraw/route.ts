@@ -34,14 +34,18 @@ export async function POST(req: NextRequest) {
   const user = await prisma.user.findUnique({ where: { id: userId } });
 
   if (type === "store_credit") {
-    if (withdrawAmount > Number(affiliate.storeCredit)) {
-      return NextResponse.json({ error: "Insufficient store credit balance" }, { status: 400 });
+    // Vérifier le solde disponible (availableBalance)
+    if (withdrawAmount > Number(affiliate.availableBalance)) {
+      return NextResponse.json({ error: "Insufficient available balance" }, { status: 400 });
     }
 
+    // Convertir availableBalance en storeCredit
     const updated = await prisma.affiliate.update({
       where: { userId },
       data: {
-        storeCredit: { decrement: withdrawAmount },
+        availableBalance: { decrement: withdrawAmount },
+        storeCredit: { increment: withdrawAmount },
+        totalWithdrawn: { increment: withdrawAmount },
       },
     });
 
@@ -51,13 +55,14 @@ export async function POST(req: NextRequest) {
         customerName: user.firstName,
         amount: withdrawAmount,
         type: "store_credit",
-        newBalance: Number(updated.storeCredit),
+        newBalance: Number(updated.availableBalance),
       }).catch((err) => console.error("Withdrawal email error:", err));
     }
 
     return NextResponse.json({
-      message: `$${withdrawAmount} deducted from store credit`,
+      message: `$${withdrawAmount} converted to store credit`,
       newStoreCredit: Number(updated.storeCredit),
+      newBalance: Number(updated.availableBalance),
     });
   }
 
