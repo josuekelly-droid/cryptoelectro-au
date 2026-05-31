@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { jwtVerify } from "jose";
+import { sendWithdrawalConfirmationEmail } from "@/lib/email";
 
 const JWT_SECRET = new TextEncoder().encode(process.env.NEXTAUTH_SECRET || "cryptoelectro-au-secret-key-change-in-production");
-const MIN_WITHDRAW = 1; // On baisse le minimum pour les tests
+const MIN_WITHDRAW = 1;
 
 export async function POST(req: NextRequest) {
   const token = req.cookies.get("auth-token")?.value;
@@ -29,19 +30,30 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: `Minimum withdrawal is $${MIN_WITHDRAW}` }, { status: 400 });
   }
 
+  // Récupérer l'utilisateur pour l'email
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+
   if (type === "store_credit") {
-    // Vérifier le solde du store credit
     if (withdrawAmount > Number(affiliate.storeCredit)) {
       return NextResponse.json({ error: "Insufficient store credit balance" }, { status: 400 });
     }
 
-    // Déduire du store credit
     const updated = await prisma.affiliate.update({
       where: { userId },
       data: {
         storeCredit: { decrement: withdrawAmount },
       },
     });
+
+    // Envoyer l'email de confirmation
+    if (user?.email) {
+      sendWithdrawalConfirmationEmail(user.email, {
+        customerName: user.firstName,
+        amount: withdrawAmount,
+        type: "store_credit",
+        newBalance: Number(updated.storeCredit),
+      }).catch((err) => console.error("Withdrawal email error:", err));
+    }
 
     return NextResponse.json({
       message: `$${withdrawAmount} deducted from store credit`,
@@ -74,6 +86,17 @@ export async function POST(req: NextRequest) {
         status: "pending_withdrawal",
       },
     });
+
+    // Envoyer l'email de confirmation
+    if (user?.email) {
+      sendWithdrawalConfirmationEmail(user.email, {
+        customerName: user.firstName,
+        amount: withdrawAmount,
+        type: "crypto",
+        walletAddress: walletAddress,
+        newBalance: Number(updated.availableBalance),
+      }).catch((err) => console.error("Withdrawal email error:", err));
+    }
 
     return NextResponse.json({
       message: `$${withdrawAmount} withdrawal requested. Processing time: 24-48h.`,

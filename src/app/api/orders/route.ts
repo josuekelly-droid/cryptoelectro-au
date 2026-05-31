@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { jwtVerify } from "jose";
+import { logOrderCreated } from "@/lib/audit";
+import { sendOrderConfirmationEmail } from "@/lib/email";
 
 const JWT_SECRET = new TextEncoder().encode(
   process.env.NEXTAUTH_SECRET || "cryptoelectro-au-secret-key-change-in-production"
@@ -60,6 +62,14 @@ export async function POST(req: NextRequest) {
   );
   const total = subtotal + Number(body.shipping || 0) + Number(body.tax || 0);
 
+  // Récupérer les noms des produits pour l'email
+  const productIds = orderItems.map((i: any) => i.productId);
+  const products = await prisma.product.findMany({
+    where: { id: { in: productIds } },
+    select: { id: true, name: true },
+  });
+  const productMap = new Map(products.map((p) => [p.id, p.name]));
+
   const order = await prisma.order.create({
     data: {
       orderNumber: `CRY-${Date.now().toString(36).toUpperCase()}`,
@@ -82,6 +92,32 @@ export async function POST(req: NextRequest) {
     },
     include: { items: { include: { product: true } } },
   });
+
+  // Log order creation
+  await logOrderCreated(userId, order.orderNumber);
+
+  // ============ ENVOI EMAIL DE CONFIRMATION ============
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+
+  if (user?.email) {
+    sendOrderConfirmationEmail(user.email, {
+      orderNumber: order.orderNumber,
+      customerName: user.firstName,
+      items: orderItems.map((i: any) => ({
+        name: productMap.get(i.productId) || "Product",
+        quantity: i.quantity,
+        price: Number(i.price),
+      })),
+      subtotal,
+      shipping: Number(body.shipping || 0),
+      tax: Number(body.tax || 0),
+      total,
+      cryptoCurrency: body.cryptoCurrency || undefined,
+      cryptoAmount: undefined,
+      cryptoAddress: undefined,
+      paymentMethod: body.cryptoCurrency ? "crypto" : "card",
+    }).catch((err) => console.error("Email send error:", err));
+  }
 
   // Mettre à jour les points de fidélité
   const earnedPoints = Math.floor(subtotal * 10);
@@ -109,9 +145,8 @@ export async function POST(req: NextRequest) {
       const affiliate = await prisma.affiliate.findUnique({ where: { code: affiliateRef } });
 
       if (affiliate) {
-        const commission = (subtotal * 5) / 100; // 5% de commission
+        const commission = (subtotal * 5) / 100;
 
-        // Créer la référence
         await prisma.affiliateReferral.create({
           data: {
             affiliateId: affiliate.id,
@@ -121,7 +156,6 @@ export async function POST(req: NextRequest) {
           },
         });
 
-        // Mettre à jour l'affilié
         await prisma.affiliate.update({
           where: { id: affiliate.id },
           data: {

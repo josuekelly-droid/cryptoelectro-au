@@ -33,16 +33,24 @@ export default function CategoryPage() {
       .then((d) => {
         const cat = (d.categories || []).find((c: any) => c.slug === slug);
         setCategory(cat || null);
+        // === SEO dynamique ===
+        if (cat) {
+          document.title = `${cat.name} - Buy with Crypto | Cryptoelectro-au`;
+          const metaDesc = document.querySelector('meta[name="description"]');
+          if (metaDesc) {
+            metaDesc.setAttribute(
+              "content",
+              cat.description || `Shop ${cat.name} with cryptocurrency. Premium electronics, fast shipping Australia-wide.`
+            );
+          }
+          const ogTitle = document.querySelector('meta[property="og:title"]');
+          if (ogTitle) ogTitle.setAttribute("content", `${cat.name} - Cryptoelectro-au`);
+        }
       })
       .catch(() => setCategory(null));
 
     // Fetch products for this category
-    const query = new URLSearchParams({
-      category: slug,
-      limit: "100",
-    }).toString();
-
-    fetch(`/api/products?${query}`)
+    fetch(`/api/products?category=${slug}&limit=100`)
       .then((r) => r.json())
       .then((d) => {
         setProducts(d.products || []);

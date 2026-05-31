@@ -24,6 +24,16 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
+    // Check if user is blocked - force logout
+    if (user.isBlocked) {
+      const response = NextResponse.json(
+        { error: "Your account has been suspended. Please contact support." },
+        { status: 403 }
+      );
+      response.cookies.set("auth-token", "", { maxAge: 0, path: "/" });
+      return response;
+    }
+
     const { password: _, ...userWithoutPassword } = user;
 
     return NextResponse.json({ user: userWithoutPassword });

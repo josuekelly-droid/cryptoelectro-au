@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
+import { logPasswordReset } from "@/lib/audit";
 
 export async function POST(req: NextRequest) {
   const { token, password } = await req.json();
@@ -34,6 +35,10 @@ export async function POST(req: NextRequest) {
       resetTokenExpiry: null,
     },
   });
+
+  // Log password reset
+  const ip = req.headers.get("x-forwarded-for") || "unknown";
+  await logPasswordReset(user.id, ip);
 
   return NextResponse.json({ message: "Password reset successfully" });
 }

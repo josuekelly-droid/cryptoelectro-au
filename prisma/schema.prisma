@@ -22,6 +22,8 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
+  isBlocked Boolean @default(false)
+
   orders      Order[]
   reviews     Review[]
   wishlist    Wishlist[]
@@ -371,4 +373,16 @@ model AffiliateReferral {
   order     Order?    @relation(fields: [orderId], references: [id])
 
   @@map("affiliate_referrals")
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  action    String
+  details   String?
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  @@map("audit_logs")
 }

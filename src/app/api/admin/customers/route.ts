@@ -23,6 +23,7 @@ export async function GET(req: NextRequest) {
       firstName: true,
       lastName: true,
       email: true,
+      isBlocked: true,
       createdAt: true,
       _count: { select: { orders: true } },
     },

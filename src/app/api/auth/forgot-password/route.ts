@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import crypto from "crypto";
 import nodemailer from "nodemailer";
+import { passwordResetLimit } from "@/lib/rate-limit";
 
 const transporter = nodemailer.createTransport({
   service: "gmail",
@@ -12,6 +13,18 @@ const transporter = nodemailer.createTransport({
 });
 
 export async function POST(req: NextRequest) {
+
+  const ip = req.headers.get("x-forwarded-for") || "unknown";
+const { success } = await passwordResetLimit.limit(ip);
+
+if (!success) {
+  return NextResponse.json(
+    { error: "Too many requests. Please try again in 1 hour." },
+    { status: 429 }
+  );
+}
+
+
   const { email } = await req.json();
 
   if (!email) {

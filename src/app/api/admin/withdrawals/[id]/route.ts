@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { jwtVerify } from "jose";
+import { sendWithdrawalConfirmationEmail } from "@/lib/email";
 
 const JWT_SECRET = new TextEncoder().encode(process.env.NEXTAUTH_SECRET || "cryptoelectro-au-secret-key-change-in-production");
 
@@ -15,7 +16,29 @@ async function isAdmin(req: NextRequest) {
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   if (!(await isAdmin(req))) return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   const { id } = await params;
-  await prisma.affiliateReferral.update({ where: { id }, data: { status: "paid" } });
+
+  const referral = await prisma.affiliateReferral.update({
+    where: { id },
+    data: { status: "paid" },
+    include: {
+      affiliate: {
+        include: {
+          user: { select: { id: true, firstName: true, email: true } },
+        },
+      },
+    },
+  });
+
+  // Envoyer l'email de confirmation au client
+  if (referral.affiliate?.user?.email) {
+    sendWithdrawalConfirmationEmail(referral.affiliate.user.email, {
+      customerName: referral.affiliate.user.firstName,
+      amount: Number(referral.commission),
+      type: "crypto",
+      newBalance: Number(referral.affiliate.availableBalance),
+    }).catch((err) => console.error("Paid withdrawal email error:", err));
+  }
+
   return NextResponse.json({ message: "Marked as paid" });
 }
 

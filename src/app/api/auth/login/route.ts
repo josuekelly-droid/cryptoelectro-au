@@ -2,12 +2,27 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { SignJWT } from "jose";
+import { loginRateLimit } from "@/lib/rate-limit";
+import { logLogin, logFailedLogin } from "@/lib/audit";
 
 const JWT_SECRET = new TextEncoder().encode(
   process.env.NEXTAUTH_SECRET || "cryptoelectro-au-secret-key-change-in-production"
 );
 
 export async function POST(req: NextRequest) {
+  const ip = req.headers.get("x-forwarded-for") || "unknown";
+  const userAgent = req.headers.get("user-agent") || "unknown";
+
+  // Rate limiting
+  const { success } = await loginRateLimit.limit(ip);
+
+  if (!success) {
+    return NextResponse.json(
+      { error: "Too many login attempts. Please try again in 15 minutes." },
+      { status: 429 }
+    );
+  }
+
   try {
     const { email, password } = await req.json();
 
@@ -24,9 +39,19 @@ export async function POST(req: NextRequest) {
     });
 
     if (!user) {
+      await logFailedLogin(email, ip);
       return NextResponse.json(
         { error: "Invalid email or password" },
         { status: 401 }
+      );
+    }
+
+    // Check if user is blocked
+    if (user.isBlocked) {
+      await logFailedLogin(email, ip);
+      return NextResponse.json(
+        { error: "Your account has been suspended. Please contact support." },
+        { status: 403 }
       );
     }
 
@@ -34,11 +59,15 @@ export async function POST(req: NextRequest) {
     const isValid = await bcrypt.compare(password, user.password);
 
     if (!isValid) {
+      await logFailedLogin(email, ip);
       return NextResponse.json(
         { error: "Invalid email or password" },
         { status: 401 }
       );
     }
+
+    // Log successful login
+    await logLogin(user.id, ip, userAgent);
 
     // Create JWT token
     const token = await new SignJWT({

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Breadcrumb from "@/components/ui/Breadcrumb";
 
@@ -92,6 +92,33 @@ export default function FAQPage() {
       prev.includes(q) ? prev.filter((item) => item !== q) : [...prev, q]
     );
   };
+
+  // Injecter le FAQ Schema via JavaScript standard (pas de dangerouslySetInnerHTML)
+  useEffect(() => {
+    const faqSchema = {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      mainEntity: faqCategories.flatMap((cat) =>
+        cat.questions.map((q) => ({
+          "@type": "Question",
+          name: q.q,
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: q.a,
+          },
+        }))
+      ),
+    };
+
+    const script = document.createElement("script");
+    script.type = "application/ld+json";
+    script.textContent = JSON.stringify(faqSchema);
+    document.head.appendChild(script);
+
+    return () => {
+      document.head.removeChild(script);
+    };
+  }, []);
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

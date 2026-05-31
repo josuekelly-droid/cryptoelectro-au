@@ -1,25 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
+import { registerSchema } from "@/lib/validations";
+import { logRegister } from "@/lib/audit";
 
 export async function POST(req: NextRequest) {
   try {
-    const { firstName, lastName, email, password } = await req.json();
+    const body = await req.json();
 
-    // Validation
-    if (!firstName || !lastName || !email || !password) {
+    // Validation avec Zod
+    const parsed = registerSchema.safeParse(body);
+
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: "All fields are required" },
+        { error: parsed.error.issues[0].message },
         { status: 400 }
       );
     }
 
-    if (password.length < 8) {
-      return NextResponse.json(
-        { error: "Password must be at least 8 characters" },
-        { status: 400 }
-      );
-    }
+    const { firstName, lastName, email, password } = parsed.data;
 
     // Check if user exists
     const existingUser = await prisma.user.findUnique({
@@ -45,6 +44,10 @@ export async function POST(req: NextRequest) {
         password: hashedPassword,
       },
     });
+
+    // Log registration
+    const ip = req.headers.get("x-forwarded-for") || "unknown";
+    await logRegister(user.id, ip);
 
     // Return user without password
     const { password: _, ...userWithoutPassword } = user;

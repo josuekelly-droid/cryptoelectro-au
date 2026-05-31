@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect, useRef } from "react";
 import Link from "next/link";
 
 interface BreadcrumbItem {
@@ -10,6 +13,48 @@ interface BreadcrumbProps {
 }
 
 export default function Breadcrumb({ items }: BreadcrumbProps) {
+  const scriptRef = useRef<HTMLScriptElement | null>(null);
+
+  useEffect(() => {
+    // Supprimer l'ancien script s'il existe
+    if (scriptRef.current) {
+      scriptRef.current.remove();
+    }
+
+    // Créer le schema BreadcrumbList
+    const schema = {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        {
+          "@type": "ListItem",
+          position: 1,
+          name: "Home",
+          item: window.location.origin + "/",
+        },
+        ...items.map((item, index) => ({
+          "@type": "ListItem",
+          position: index + 2,
+          name: item.label,
+          item: item.href ? window.location.origin + item.href : undefined,
+        })),
+      ].filter((i) => i.item !== undefined),
+    };
+
+    // Injecter le script proprement
+    const script = document.createElement("script");
+    script.type = "application/ld+json";
+    script.textContent = JSON.stringify(schema);
+    document.head.appendChild(script);
+    scriptRef.current = script;
+
+    return () => {
+      if (scriptRef.current) {
+        scriptRef.current.remove();
+      }
+    };
+  }, [items]);
+
   return (
     <nav aria-label="Breadcrumb" className="py-4">
       <ol className="flex flex-wrap items-center gap-1.5 text-sm">
