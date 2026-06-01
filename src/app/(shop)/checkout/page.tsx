@@ -6,9 +6,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useCart } from "@/lib/cart";
 import { useAuth } from "@/hooks/useAuth";
 import Breadcrumb from "@/components/ui/Breadcrumb";
-import { PayPalScriptProvider, PayPalCardFieldsProvider, PayPalNameField, PayPalNumberField, PayPalExpiryField, PayPalCVVField } from "@paypal/react-paypal-js";
 
 type Step = "shipping" | "payment" | "processing" | "review";
+
+declare global { interface Window { paypal?: any; } }
 
 export default function CheckoutPage() {
   const { items, subtotal, clearCart } = useCart();
@@ -56,6 +57,35 @@ export default function CheckoutPage() {
     loadStoreCredit();
   }, []);
 
+  // === BOUTON PAYPAL CLASSIQUE ===
+  useEffect(() => {
+    if (paymentMethod === "card" && step === "payment") {
+      const container = document.getElementById("paypal-button-container");
+      if (!container) return;
+      container.innerHTML = "";
+
+      const script = document.createElement("script");
+      script.src = `https://www.paypal.com/sdk/js?client-id=${process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || "test"}&currency=AUD&intent=capture`;
+      script.onload = () => {
+        if (window.paypal) {
+          window.paypal.Buttons({
+            createOrder: async () => {
+              const res = await fetch("/api/paypal/create", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ amount: total, orderId: "pending" }) });
+              const data = await res.json();
+              return data.id;
+            },
+            onApprove: async (data: any) => {
+              await createOrderBeforePayment();
+              await onPayPalApprove(data);
+            },
+            onError: (err: any) => { setError("Payment failed. Please try again."); console.error(err); },
+          }).render("#paypal-button-container");
+        }
+      };
+      document.body.appendChild(script);
+    }
+  }, [paymentMethod, step]);
+
   const cryptos = [
     { symbol: "TRX", name: "TRON", icon: "🔷" },
     { symbol: "USDT", name: "Tether USD", icon: "₮" },
@@ -70,23 +100,23 @@ export default function CheckoutPage() {
   };
 
   const createOrderBeforePayment = async () => {
-    if (!user) { setError("Please sign in."); return null; }
+    if (!user) { setError("Please sign in."); return; }
     setIsProcessing(true); setError("");
     const orderItems = items.map((item) => ({ productId: item.product.id, color: item.color, quantity: item.quantity, price: Number(item.product.price) }));
     try {
       const addressRes = await fetch("/api/addresses", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(shippingInfo) });
-      if (!addressRes.ok) { setError("Failed to save address."); setIsProcessing(false); return null; }
+      if (!addressRes.ok) { setError("Failed to save address."); setIsProcessing(false); return; }
       const addressData = await addressRes.json();
       const savedCreditApplied = creditApplied; const savedUseCredit = useCredit;
       const orderRes = await fetch("/api/orders", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ addressId: addressData.address.id, items: orderItems, paymentMethod: "card", shipping, tax, cryptoCurrency: null }) });
-      if (!orderRes.ok) { setError("Failed to create order."); setIsProcessing(false); return null; }
+      if (!orderRes.ok) { setError("Failed to create order."); setIsProcessing(false); return; }
       const orderData = await orderRes.json();
       if (savedUseCredit && savedCreditApplied > 0) { await fetch("/api/affiliate/withdraw", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ type: "use_credit", amount: savedCreditApplied }) }); loadStoreCredit(); }
       setOrderNumber(orderData.order.orderNumber); setOrderTotal(total); setOrderSubtotal(subtotal); setOrderTax(tax);
       setSavedOrderId(orderData.order.id); setSavedTotalRef(total);
+      clearCart();
       setIsProcessing(false);
-      return orderData.order.orderNumber;
-    } catch { setError("Network error."); setIsProcessing(false); return null; }
+    } catch { setError("Network error."); setIsProcessing(false); }
   };
 
   const onPayPalApprove = async (data: any) => {
@@ -94,14 +124,12 @@ export default function CheckoutPage() {
     try {
       await fetch(`/api/orders/${savedOrderId}/payment`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ paymentId: data.orderID, cryptoAddress: "paypal", cryptoAmount: "0", paymentStatus: "CONFIRMED" }) });
       await fetch(`/api/orders/${savedOrderId}/confirm`, { method: "PUT" });
-      clearCart();
       setStep("review");
     } catch { setError("Payment confirmation failed."); }
     setIsProcessing(false);
   };
 
   const handlePlaceOrder = async () => {
-    if (paymentMethod === "card") { await createOrderBeforePayment(); return; }
     setIsProcessing(true); setError("");
     if (!user) { setError("Please sign in."); setIsProcessing(false); return; }
     const orderItems = items.map((item) => ({ productId: item.product.id, color: item.color, quantity: item.quantity, price: Number(item.product.price) }));
@@ -172,26 +200,13 @@ export default function CheckoutPage() {
               {paymentMethod === "crypto" && (<div className="space-y-3"><h4 className="text-sm font-heading font-semibold">Select Cryptocurrency</h4><div className="space-y-2">{cryptos.map((c) => (<button key={c.symbol} onClick={() => setSelectedCrypto(c.symbol)} className={`w-full flex items-center gap-4 p-3 rounded-md border transition-all ${selectedCrypto === c.symbol ? "border-accent bg-accent/5" : "border-secondary-light hover:border-text-primary/20"}`}><span className="text-2xl w-8 text-center">{c.icon}</span><div className="text-left"><p className="text-sm font-medium">{c.name}</p><p className="text-xs text-text-primary/40">{c.symbol}</p></div></button>))}</div><p className="text-xs text-text-primary/40 flex items-center gap-1">🔒 Secured by NowPayments</p></div>)}
 
               {paymentMethod === "card" && (
-                <PayPalScriptProvider options={{ clientId: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || "test", currency: "AUD", intent: "capture", components: "card-fields" }}>
-                  <PayPalCardFieldsProvider
-                    createOrder={async () => {
-                      const res = await fetch("/api/paypal/create", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ amount: total, orderId: orderNumber || "pending" }) });
-                      const data = await res.json();
-                      return data.id;
-                    }}
-                    onApprove={async (data) => { await onPayPalApprove(data); }}
-                    onError={(err) => { setError("Card payment failed. Please try again."); console.error(err); }}
-                  >
-                    <div className="space-y-4">
-                      <div><label className="block text-sm font-medium text-text-primary/70 mb-2">Cardholder Name</label><PayPalNameField className="input-field" /></div>
-                      <div><label className="block text-sm font-medium text-text-primary/70 mb-2">Card Number</label><PayPalNumberField className="input-field" /></div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div><label className="block text-sm font-medium text-text-primary/70 mb-2">Expiry Date</label><PayPalExpiryField className="input-field" /></div>
-                        <div><label className="block text-sm font-medium text-text-primary/70 mb-2">CVV</label><PayPalCVVField className="input-field" /></div>
-                      </div>
-                    </div>
-                  </PayPalCardFieldsProvider>
-                </PayPalScriptProvider>
+                <div className="space-y-4">
+                  <div className="bg-accent/5 border border-accent/20 rounded-lg p-4">
+                    <p className="text-sm font-medium flex items-center gap-2"><span className="text-2xl">💳</span> Pay with Card or PayPal</p>
+                    <p className="text-xs text-text-primary/50 mt-2">Click the PayPal button below to pay securely. You can use any credit/debit card or your PayPal account.</p>
+                  </div>
+                  <div id="paypal-button-container" className="flex justify-center"></div>
+                </div>
               )}
 
               {paymentMethod === "crypto" && (<>
@@ -200,7 +215,7 @@ export default function CheckoutPage() {
               </>)}
             </motion.div>)}
 
-            {step === "processing" && (<motion.div key="processing" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="card p-6 sm:p-8 text-center space-y-6"><div className="animate-spin w-12 h-12 border-4 border-accent border-t-transparent rounded-full mx-auto" /><h2 className="text-xl font-heading font-bold">Processing Payment</h2><p className="text-text-primary/50">{paymentMethod === "card" ? "Redirecting to PayPal..." : "Creating your crypto payment..."}</p></motion.div>)}
+            {step === "processing" && (<motion.div key="processing" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="card p-6 sm:p-8 text-center space-y-6"><div className="animate-spin w-12 h-12 border-4 border-accent border-t-transparent rounded-full mx-auto" /><h2 className="text-xl font-heading font-bold">Processing Payment</h2><p className="text-text-primary/50">Please wait...</p></motion.div>)}
 
             {step === "review" && (<motion.div key="review" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="card p-6 sm:p-8 text-center space-y-6">
               <div className="w-16 h-16 rounded-full bg-success/20 flex items-center justify-center mx-auto"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-8 h-8 text-success"><path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg></div>
