@@ -5,6 +5,8 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import Breadcrumb from "@/components/ui/Breadcrumb";
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://cryptoelectro-au.vercel.app";
+
 export default function BlogPostPage() {
   const params = useParams();
   const id = params.id as string;
@@ -12,14 +14,57 @@ export default function BlogPostPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-  fetch(`/api/blog?id=${id}`)
-    .then((r) => r.json())
-    .then((d) => {
-      setPost(d.post || null);
-      setLoading(false);
-    })
-    .catch(() => setLoading(false));
-}, [id]);
+    fetch(`/api/blog?id=${id}`)
+      .then((r) => r.json())
+      .then((d) => {
+        const found = d.post || null;
+        setPost(found);
+        setLoading(false);
+
+        if (found) {
+          // SEO dynamique
+          document.title = `${found.title} - Cryptoelectro-au Blog`;
+          const metaDesc = document.querySelector('meta[name="description"]');
+          if (metaDesc) metaDesc.setAttribute("content", found.excerpt || found.title);
+          const ogTitle = document.querySelector('meta[property="og:title"]');
+          if (ogTitle) ogTitle.setAttribute("content", `${found.title} - Cryptoelectro-au`);
+          const ogDesc = document.querySelector('meta[property="og:description"]');
+          if (ogDesc) ogDesc.setAttribute("content", found.excerpt || found.title);
+          const ogImage = document.querySelector('meta[property="og:image"]');
+          if (ogImage && found.image) ogImage.setAttribute("content", found.image);
+          const canonical = document.querySelector('link[rel="canonical"]');
+          if (canonical) canonical.setAttribute("href", `${SITE_URL}/blog/${found.id}`);
+
+          // Schema JSON-LD Article
+          const schema = {
+            "@context": "https://schema.org",
+            "@type": "Article",
+            headline: found.title,
+            description: found.excerpt,
+            image: found.image || "",
+            author: {
+              "@type": "Person",
+              name: found.author || "Cryptoelectro Team",
+            },
+            publisher: {
+              "@type": "Organization",
+              name: "Cryptoelectro-au",
+              url: SITE_URL,
+              email: "cryptoelectroau@gmail.com",
+            },
+            datePublished: found.createdAt,
+            dateModified: found.updatedAt || found.createdAt,
+            mainEntityOfPage: `${SITE_URL}/blog/${found.id}`,
+          };
+          const script = document.createElement("script");
+          script.type = "application/ld+json";
+          script.textContent = JSON.stringify(schema);
+          document.head.appendChild(script);
+          return () => { document.head.removeChild(script); };
+        }
+      })
+      .catch(() => setLoading(false));
+  }, [id]);
 
   if (loading) return <div className="max-w-4xl mx-auto px-4 py-8"><p className="text-text-primary/50">Loading...</p></div>;
 
