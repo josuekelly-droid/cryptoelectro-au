@@ -36,13 +36,11 @@ export default function ProductPage() {
         );
         if (found) {
           setProduct(found);
-          // Mettre à jour les métadonnées de la page
           document.title = `${found.name} - Buy with Crypto | Cryptoelectro-au`;
           const metaDesc = document.querySelector('meta[name="description"]');
           if (metaDesc) {
             metaDesc.setAttribute("content", found.shortDescription || found.description?.substring(0, 160) || `Buy ${found.name} with cryptocurrency. Fast shipping Australia-wide.`);
           }
-          // Mettre à jour Open Graph
           const ogTitle = document.querySelector('meta[property="og:title"]');
           if (ogTitle) ogTitle.setAttribute("content", `${found.name} - Cryptoelectro-au`);
           const ogDesc = document.querySelector('meta[property="og:description"]');
@@ -63,6 +61,37 @@ export default function ProductPage() {
       })
       .catch(() => setLoading(false));
   }, [slug]);
+
+  // Schema JSON-LD Produit (injecté proprement)
+  useEffect(() => {
+    if (!product) return;
+    const schema = {
+      "@context": "https://schema.org",
+      "@type": "Product",
+      name: product.name,
+      description: product.shortDescription || product.description,
+      image: product.images?.[0]?.url || "",
+      brand: { "@type": "Brand", name: brandName },
+      sku: product.id,
+      offers: {
+        "@type": "Offer",
+        price: Number(product.price) || 0,
+        priceCurrency: "AUD",
+        availability: product.inStock ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+        url: `${window.location.origin}/product/${product.slug || product.id}`,
+      },
+      aggregateRating: (Number(product.reviewCount) || 0) > 0 ? {
+        "@type": "AggregateRating",
+        ratingValue: Number(product.rating) || 0,
+        reviewCount: Number(product.reviewCount) || 0,
+      } : undefined,
+    };
+    const script = document.createElement("script");
+    script.type = "application/ld+json";
+    script.textContent = JSON.stringify(schema);
+    document.head.appendChild(script);
+    return () => { document.head.removeChild(script); };
+  }, [product]);
 
   if (loading) {
     return (
@@ -100,34 +129,8 @@ export default function ProductPage() {
     setTimeout(() => setAddedToCart(false), 1500);
   };
 
-  // Schema JSON-LD Produit
-  const productSchema = {
-    "@context": "https://schema.org",
-    "@type": "Product",
-    name: product.name,
-    description: product.shortDescription || product.description,
-    image: images[0]?.url || "",
-    brand: { "@type": "Brand", name: brandName },
-    sku: product.id,
-    offers: {
-      "@type": "Offer",
-      price: productPrice,
-      priceCurrency: "AUD",
-      availability: product.inStock ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
-      url: `${window.location.origin}/product/${product.slug || product.id}`,
-    },
-    aggregateRating: productReviews > 0 ? {
-      "@type": "AggregateRating",
-      ratingValue: productRating,
-      reviewCount: productReviews,
-    } : undefined,
-  };
-
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Schema JSON-LD */}
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }} />
-
       <Breadcrumb
         items={[
           { label: categoryName, href: `/category/${categorySlug}` },

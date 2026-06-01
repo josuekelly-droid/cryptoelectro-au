@@ -5,6 +5,7 @@ import Footer from "@/components/layout/Footer";
 import { CartProvider } from "@/lib/cart";
 import { WishlistProvider } from "@/lib/wishlist";
 import { AuthProvider } from "@/hooks/useAuth";
+import SchemaScript from "@/components/ui/SchemaScript";
 import "./globals.css";
 
 // ============ FONTS ============
@@ -60,7 +61,6 @@ export const viewport: Viewport = {
 
 // ============ METADATA ============
 export const metadata: Metadata = {
-  // Base
   metadataBase: new URL(SITE_URL),
   title: {
     default: `${SITE_NAME} | Premium Electronics Marketplace`,
@@ -68,13 +68,7 @@ export const metadata: Metadata = {
   },
   description: SITE_DESCRIPTION,
   keywords: SITE_KEYWORDS,
-
-  // Canonical
-  alternates: {
-    canonical: "/",
-  },
-
-  // Robots
+  alternates: { canonical: "/" },
   robots: {
     index: true,
     follow: true,
@@ -86,15 +80,7 @@ export const metadata: Metadata = {
       "max-snippet": -1,
     },
   },
-
-  // Icons
-  icons: {
-    icon: "/favicon.ico",
-    shortcut: "/favicon.ico",
-    apple: "/favicon.svg",
-  },
-
-  // Open Graph
+  icons: { icon: "/favicon.ico", shortcut: "/favicon.ico", apple: "/favicon.svg" },
   openGraph: {
     type: "website",
     siteName: SITE_NAME,
@@ -102,17 +88,8 @@ export const metadata: Metadata = {
     description: SITE_DESCRIPTION,
     url: SITE_URL,
     locale: "en_AU",
-    images: [
-      {
-        url: `${SITE_URL}/og-image.png`,
-        width: 1200,
-        height: 630,
-        alt: SITE_NAME,
-      },
-    ],
+    images: [{ url: `${SITE_URL}/og-image.png`, width: 1200, height: 630, alt: SITE_NAME }],
   },
-
-  // Twitter
   twitter: {
     card: "summary_large_image",
     site: "@cryptoelectroau",
@@ -121,20 +98,44 @@ export const metadata: Metadata = {
     description: SITE_DESCRIPTION,
     images: [`${SITE_URL}/og-image.png`],
   },
-
-  // Verification
-  verification: {
-    google: "your-google-verification-code", // À remplacer
-  },
-
-  // Other
+  verification: { google: "your-google-verification-code" },
   category: "ecommerce",
   creator: "Cryptoelectro-au",
   publisher: "Cryptoelectro-au",
-  formatDetection: {
-    email: false,
-    address: false,
-    telephone: false,
+  formatDetection: { email: false, address: false, telephone: false },
+};
+
+// ============ SCHEMAS JSON-LD (sans dangerouslySetInnerHTML) ============
+const organizationSchema = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: SITE_NAME,
+  url: SITE_URL,
+  description: SITE_DESCRIPTION,
+  logo: `${SITE_URL}/logo.png`,
+  sameAs: [
+    "https://twitter.com/cryptoelectroau",
+    "https://facebook.com/cryptoelectroau",
+    "https://instagram.com/cryptoelectroau",
+  ],
+  contactPoint: {
+    "@type": "ContactPoint",
+    telephone: "1300-123-456",
+    contactType: "customer service",
+    areaServed: "AU",
+    availableLanguage: "English",
+  },
+};
+
+const websiteSchema = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: SITE_NAME,
+  url: SITE_URL,
+  potentialAction: {
+    "@type": "SearchAction",
+    target: `${SITE_URL}/search?q={search_term_string}`,
+    "query-input": "required name=search_term_string",
   },
 };
 
@@ -147,62 +148,16 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
       <head>
-        {/* Preconnect to external domains */}
         <link rel="preconnect" href="https://images.unsplash.com" />
         <link rel="preconnect" href="https://api.nowpayments.io" />
-
-        {/* DNS Prefetch */}
         <link rel="dns-prefetch" href="https://images.unsplash.com" />
         <link rel="dns-prefetch" href="https://api.nowpayments.io" />
-
-        {/* Schema JSON-LD Organization */}
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "Organization",
-              name: SITE_NAME,
-              url: SITE_URL,
-              description: SITE_DESCRIPTION,
-              logo: `${SITE_URL}/logo.png`,
-              sameAs: [
-                "https://twitter.com/cryptoelectroau",
-                "https://facebook.com/cryptoelectroau",
-                "https://instagram.com/cryptoelectroau",
-              ],
-              contactPoint: {
-                "@type": "ContactPoint",
-                telephone: "1300-123-456",
-                contactType: "customer service",
-                areaServed: "AU",
-                availableLanguage: "English",
-              },
-            }),
-          }}
-        />
-
-        {/* Schema JSON-LD WebSite */}
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "WebSite",
-              name: SITE_NAME,
-              url: SITE_URL,
-              potentialAction: {
-                "@type": "SearchAction",
-                target: `${SITE_URL}/search?q={search_term_string}`,
-                "query-input": "required name=search_term_string",
-              },
-            }),
-          }}
-        />
       </head>
       <body
         className={`${montserrat.variable} ${sourceSans.variable} ${firaCode.variable} antialiased min-h-screen flex flex-col`}
       >
+        <SchemaScript schema={organizationSchema} />
+        <SchemaScript schema={websiteSchema} />
         <AuthProvider>
           <WishlistProvider>
             <CartProvider>
