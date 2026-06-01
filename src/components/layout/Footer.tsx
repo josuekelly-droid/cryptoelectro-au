@@ -141,6 +141,8 @@ export default function Footer() {
               <span className="badge badge-accent text-xs">BTC</span>
               <span className="badge badge-accent text-xs">ETH</span>
               <span className="badge badge-accent text-xs">USDT</span>
+              <span className="badge badge-accent text-xs">TRX</span>
+              <span className="badge badge-accent text-xs">+100</span>
             </div>
           </div>
         </div>
