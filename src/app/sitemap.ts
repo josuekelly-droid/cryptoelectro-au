@@ -2,7 +2,7 @@ import { prisma } from "@/lib/prisma";
 
 const SITE_URL = process.env.NEXTAUTH_URL || "https://cryptoelectro.au";
 
-export async function GET() {
+export default async function GET() {
   const products = await prisma.product.findMany({
     where: { isActive: true },
     select: { slug: true, updatedAt: true },
