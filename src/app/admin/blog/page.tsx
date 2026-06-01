@@ -39,9 +39,9 @@ export default function AdminBlogPage() {
   };
 
   return (
-    <div className="p-6 lg:p-8">
-      <div className="flex items-center justify-between mb-8">
-        <h1 className="text-2xl font-heading font-bold">Blog Posts</h1>
+    <div className="p-4 sm:p-6 lg:p-8">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
+        <h1 className="text-xl sm:text-2xl font-heading font-bold">Blog Posts</h1>
         <div className="flex gap-3">
           <Link href="/admin" className="btn-secondary text-sm">← Back</Link>
           <button onClick={() => { setShowForm(!showForm); setEditing(null); setForm({ title: "", excerpt: "", content: "", category: "Tech", image: "", author: "", published: false }); }} className="btn-primary text-sm">+ New Post</button>
@@ -49,7 +49,7 @@ export default function AdminBlogPage() {
       </div>
 
       {showForm && (
-        <div className="card p-6 mb-8">
+        <div className="card p-4 sm:p-6 mb-8">
           <h2 className="text-lg font-heading font-bold mb-4">{editing ? "Edit Post" : "New Post"}</h2>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -71,32 +71,37 @@ export default function AdminBlogPage() {
         </div>
       )}
 
+      {/* Tableau responsive */}
       <div className="card overflow-hidden">
-        <table className="w-full">
-          <thead>
-            <tr className="border-b border-secondary-light">
-              <th className="text-left text-xs font-medium text-text-primary/50 uppercase px-6 py-3">Title</th>
-              <th className="text-left text-xs font-medium text-text-primary/50 uppercase px-6 py-3">Category</th>
-              <th className="text-left text-xs font-medium text-text-primary/50 uppercase px-6 py-3">Author</th>
-              <th className="text-left text-xs font-medium text-text-primary/50 uppercase px-6 py-3">Status</th>
-              <th className="text-left text-xs font-medium text-text-primary/50 uppercase px-6 py-3">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {posts.map((p: any) => (
-              <tr key={p.id} className="border-b border-secondary-light">
-                <td className="px-6 py-4 text-sm font-medium">{p.title}</td>
-                <td className="px-6 py-4 text-sm text-text-primary/60">{p.category}</td>
-                <td className="px-6 py-4 text-sm text-text-primary/60">{p.author}</td>
-                <td className="px-6 py-4">{p.published ? <span className="badge badge-success text-xs">Published</span> : <span className="badge badge-warning text-xs">Draft</span>}</td>
-                <td className="px-6 py-4 flex gap-2">
-                  <button onClick={() => handleEdit(p)} className="text-xs text-accent hover:underline">Edit</button>
-                  <button onClick={() => handleDelete(p.id)} className="text-xs text-error hover:underline">Delete</button>
-                </td>
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[600px]">
+            <thead>
+              <tr className="border-b border-secondary-light">
+                <th className="text-left text-xs font-medium text-text-primary/50 uppercase px-4 sm:px-6 py-3">Title</th>
+                <th className="text-left text-xs font-medium text-text-primary/50 uppercase px-4 sm:px-6 py-3 hidden sm:table-cell">Category</th>
+                <th className="text-left text-xs font-medium text-text-primary/50 uppercase px-4 sm:px-6 py-3 hidden md:table-cell">Author</th>
+                <th className="text-left text-xs font-medium text-text-primary/50 uppercase px-4 sm:px-6 py-3">Status</th>
+                <th className="text-left text-xs font-medium text-text-primary/50 uppercase px-4 sm:px-6 py-3">Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {posts.map((p: any) => (
+                <tr key={p.id} className="border-b border-secondary-light">
+                  <td className="px-4 sm:px-6 py-3 text-sm font-medium max-w-[150px] sm:max-w-none truncate">{p.title}</td>
+                  <td className="px-4 sm:px-6 py-3 text-sm text-text-primary/60 hidden sm:table-cell">{p.category}</td>
+                  <td className="px-4 sm:px-6 py-3 text-sm text-text-primary/60 hidden md:table-cell">{p.author}</td>
+                  <td className="px-4 sm:px-6 py-3">{p.published ? <span className="badge badge-success text-xs">Published</span> : <span className="badge badge-warning text-xs">Draft</span>}</td>
+                  <td className="px-4 sm:px-6 py-3">
+                    <div className="flex gap-2">
+                      <button onClick={() => handleEdit(p)} className="text-xs text-accent hover:underline whitespace-nowrap">Edit</button>
+                      <button onClick={() => handleDelete(p.id)} className="text-xs text-error hover:underline whitespace-nowrap">Delete</button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
