@@ -183,7 +183,7 @@ export default function CheckoutPage() {
               {paymentMethod === "crypto" && (<div className="space-y-3"><h4 className="text-sm font-heading font-semibold">Select Cryptocurrency</h4><div className="space-y-2">{cryptos.map((c) => (<button key={c.symbol} onClick={() => setSelectedCrypto(c.symbol)} className={`w-full flex items-center gap-4 p-3 rounded-md border transition-all ${selectedCrypto === c.symbol ? "border-accent bg-accent/5" : "border-secondary-light hover:border-text-primary/20"}`}><span className="text-2xl w-8 text-center">{c.icon}</span><div className="text-left"><p className="text-sm font-medium">{c.name}</p><p className="text-xs text-text-primary/40">{c.symbol}</p></div></button>))}</div><p className="text-xs text-text-primary/40 flex items-center gap-1">🔒 Secured by NowPayments</p></div>)}
 
               {paymentMethod === "card" && paypalLoaded && (
-                <PayPalScriptProvider options={{ clientId: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || "test", currency: "AUD", intent: "capture" }}>
+                <PayPalScriptProvider options={{ clientId: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || "test", currency: "AUD", intent: "capture", components: "card-fields" }}>
                   <PayPalCardFieldsProvider
                     createOrder={async () => {
                       const res = await fetch("/api/paypal/create", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ amount: total, orderId: orderNumber || "pending" }) });
