@@ -39,7 +39,6 @@ export default function CheckoutPage() {
   const [storeCredit, setStoreCredit] = useState(0);
   const [useCredit, setUseCredit] = useState(false);
   const [savedTotalRef, setSavedTotalRef] = useState(0);
-  const [paypalLoaded, setPaypalLoaded] = useState(false);
   const [savedOrderId, setSavedOrderId] = useState("");
 
   const shipping = subtotal > 500 ? 0 : 29.99;
@@ -56,16 +55,6 @@ export default function CheckoutPage() {
     fetch("/api/rewards").then((r) => r.json()).then((d) => setLoyaltyDiscount(d.discount || 0)).catch(() => {});
     loadStoreCredit();
   }, []);
-
-  useEffect(() => {
-    if (paymentMethod === "card" && !paypalLoaded) {
-      const script = document.createElement("script");
-      script.src = `https://www.paypal.com/sdk/js?client-id=${process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || "test"}&components=card-fields&currency=AUD`;
-      script.async = true;
-      script.onload = () => setPaypalLoaded(true);
-      document.body.appendChild(script);
-    }
-  }, [paymentMethod, paypalLoaded]);
 
   const cryptos = [
     { symbol: "TRX", name: "TRON", icon: "🔷" },
@@ -182,7 +171,7 @@ export default function CheckoutPage() {
 
               {paymentMethod === "crypto" && (<div className="space-y-3"><h4 className="text-sm font-heading font-semibold">Select Cryptocurrency</h4><div className="space-y-2">{cryptos.map((c) => (<button key={c.symbol} onClick={() => setSelectedCrypto(c.symbol)} className={`w-full flex items-center gap-4 p-3 rounded-md border transition-all ${selectedCrypto === c.symbol ? "border-accent bg-accent/5" : "border-secondary-light hover:border-text-primary/20"}`}><span className="text-2xl w-8 text-center">{c.icon}</span><div className="text-left"><p className="text-sm font-medium">{c.name}</p><p className="text-xs text-text-primary/40">{c.symbol}</p></div></button>))}</div><p className="text-xs text-text-primary/40 flex items-center gap-1">🔒 Secured by NowPayments</p></div>)}
 
-              {paymentMethod === "card" && paypalLoaded && (
+              {paymentMethod === "card" && (
                 <PayPalScriptProvider options={{ clientId: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || "test", currency: "AUD", intent: "capture", components: "card-fields" }}>
                   <PayPalCardFieldsProvider
                     createOrder={async () => {
@@ -204,7 +193,6 @@ export default function CheckoutPage() {
                   </PayPalCardFieldsProvider>
                 </PayPalScriptProvider>
               )}
-              {paymentMethod === "card" && !paypalLoaded && (<div className="bg-accent/5 border border-accent/20 rounded-lg p-4 text-center"><p className="text-sm text-text-primary/50">Loading payment form...</p></div>)}
 
               {paymentMethod === "crypto" && (<>
                 {error && <div className="bg-error/10 border border-error/30 text-error text-sm p-3 rounded-md">{error}</div>}
