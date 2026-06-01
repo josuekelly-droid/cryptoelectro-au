@@ -8,8 +8,8 @@
     "start": "next start",
     "lint": "eslint"
   },
-  
   "dependencies": {
+    "@paypal/react-paypal-js": "^9.2.0",
     "@prisma/client": "^6.19.3",
     "@upstash/ratelimit": "^2.0.8",
     "@upstash/redis": "^1.38.0",
