@@ -12,15 +12,14 @@ export default function BlogPostPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`/api/blog`)
-      .then((r) => r.json())
-      .then((d) => {
-        const found = (d.posts || []).find((p: any) => p.id === id || p.slug === id);
-        setPost(found || null);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
-  }, [id]);
+  fetch(`/api/blog?id=${id}`)
+    .then((r) => r.json())
+    .then((d) => {
+      setPost(d.post || null);
+      setLoading(false);
+    })
+    .catch(() => setLoading(false));
+}, [id]);
 
   if (loading) return <div className="max-w-4xl mx-auto px-4 py-8"><p className="text-text-primary/50">Loading...</p></div>;
 
