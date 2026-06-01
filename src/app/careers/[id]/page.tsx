@@ -18,6 +18,59 @@ export default function CareerDetailPage() {
         const found = (d.careers || []).find((c: any) => c.id === id || c.slug === id);
         setJob(found || null);
         setLoading(false);
+
+        if (found) {
+          // SEO dynamique
+          document.title = `${found.title} - Careers at Cryptoelectro-au | Apply Now`;
+          const metaDesc = document.querySelector('meta[name="description"]');
+          if (metaDesc) metaDesc.setAttribute("content", `${found.title} at Cryptoelectro-au. ${found.department} · ${found.location} · ${found.type}. Apply now and join Australia's premium crypto electronics marketplace.`);
+          const ogTitle = document.querySelector('meta[property="og:title"]');
+          if (ogTitle) ogTitle.setAttribute("content", `${found.title} - Cryptoelectro-au Careers`);
+          const ogDesc = document.querySelector('meta[property="og:description"]');
+          if (ogDesc) ogDesc.setAttribute("content", `Apply for ${found.title} at Cryptoelectro-au. ${found.department} · ${found.location}. Join our team today.`);
+          const canonical = document.querySelector('link[rel="canonical"]');
+          if (canonical) canonical.setAttribute("href", `https://cryptoelectro-au.vercel.app/careers/${found.id}`);
+
+          // Schema JSON-LD JobPosting
+          const schema = {
+            "@context": "https://schema.org",
+            "@type": "JobPosting",
+            title: found.title,
+            description: found.description,
+            datePosted: found.createdAt,
+            employmentType: found.type?.replace("-", "_").toUpperCase(),
+            hiringOrganization: {
+              "@type": "Organization",
+              name: "Cryptoelectro-au",
+              sameAs: "https://cryptoelectro-au.vercel.app",
+              email: "cryptoelectroau@gmail.com",
+            },
+            jobLocation: {
+              "@type": "Place",
+              address: {
+                "@type": "PostalAddress",
+                addressLocality: found.location || "Sydney",
+                addressRegion: "NSW",
+                addressCountry: "AU",
+              },
+            },
+            baseSalary: found.salary ? {
+              "@type": "MonetaryAmount",
+              currency: "AUD",
+              value: { "@type": "QuantitativeValue", value: found.salary, unitText: "YEAR" },
+            } : undefined,
+            applicationContact: {
+              "@type": "ContactPoint",
+              email: "cryptoelectroau@gmail.com",
+              contactType: "Apply",
+            },
+          };
+          const script = document.createElement("script");
+          script.type = "application/ld+json";
+          script.textContent = JSON.stringify(schema);
+          document.head.appendChild(script);
+          return () => { document.head.removeChild(script); };
+        }
       });
   }, [id]);
 
