@@ -46,10 +46,19 @@ export default function AdminOrdersPage() {
   };
 
   const notifyCustomer = async (order: Order) => {
-    const subject = encodeURIComponent(`Order ${order.orderNumber} Update - Cryptoelectro-au`);
-    const body = encodeURIComponent(`Hello ${order.user.firstName},\n\nYour order ${order.orderNumber} status has been updated to: ${order.status}.\n\nTrack your order: https://cryptoelectro-au.vercel.app/dashboard\n\nThank you for shopping with Cryptoelectro-au!\n\n- Cryptoelectro-au Team`);
-    window.open(`mailto:${order.user.email}?subject=${subject}&body=${body}`, "_blank");
-  };
+  const res = await fetch("/api/admin/notify-customer", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ orderId: order.id }),
+  });
+  if (res.ok) {
+    setMessage(`Email sent to ${order.user.email}`);
+    setTimeout(() => setMessage(""), 3000);
+  } else {
+    setMessage("Failed to send email");
+    setTimeout(() => setMessage(""), 3000);
+  }
+};
 
   const statuses = ["PENDING", "CONFIRMED", "PROCESSING", "SHIPPED", "DELIVERED", "CANCELLED"];
 
