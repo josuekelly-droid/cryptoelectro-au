@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
     if (payload.role !== "ADMIN") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   } catch { return NextResponse.json({ error: "Unauthorized" }, { status: 401 }); }
 
-  const { orderId } = await req.json();
+  const { orderId, status: newStatus } = await req.json();
   const order = await prisma.order.findUnique({
     where: { id: orderId },
     include: { user: { select: { email: true, firstName: true } } },
@@ -30,7 +30,8 @@ export async function POST(req: NextRequest) {
     CANCELLED: "has been cancelled",
   };
 
-  const message = statusMessages[order.status] || "status has been updated";
+  const currentStatus = newStatus || order.status;
+  const message = statusMessages[currentStatus] || `status has been updated to ${currentStatus.toLowerCase()}`;
 
   await transporter.sendMail({
     from: `"Cryptoelectro-au" <${process.env.GMAIL_USER}>`,

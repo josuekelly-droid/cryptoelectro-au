@@ -21,54 +21,36 @@ export default function AdminOrdersPage() {
   const [message, setMessage] = useState("");
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchOrders();
-  }, []);
+  useEffect(() => { fetchOrders(); }, []);
 
   const fetchOrders = () => {
     fetch("/api/admin/orders")
       .then((r) => r.json())
-      .then((d) => {
-        setOrders(d.orders || []);
-        setLoading(false);
-      });
+      .then((d) => { setOrders(d.orders || []); setLoading(false); });
   };
 
   const updateOrderStatus = async (id: string, status: string) => {
+    // 1. Mettre à jour le statut en BDD
     await fetch(`/api/admin/orders/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ status }),
     });
+
+    // 2. Envoyer l'email automatiquement
+    await fetch("/api/admin/notify-customer", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ orderId: id, status }),
+    });
+
+    // 3. Mettre à jour l'UI
     setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, status } : o)));
-    setMessage(`Order status updated to ${status}`);
+    setMessage(`Order ${status.toLowerCase()} - email sent to customer`);
     setTimeout(() => setMessage(""), 3000);
   };
-
-  const notifyCustomer = async (order: Order) => {
-  const res = await fetch("/api/admin/notify-customer", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ orderId: order.id }),
-  });
-  if (res.ok) {
-    setMessage(`Email sent to ${order.user.email}`);
-    setTimeout(() => setMessage(""), 3000);
-  } else {
-    setMessage("Failed to send email");
-    setTimeout(() => setMessage(""), 3000);
-  }
-};
 
   const statuses = ["PENDING", "CONFIRMED", "PROCESSING", "SHIPPED", "DELIVERED", "CANCELLED"];
-
-  const getStatusBadge = (status: string) => {
-    const colors: Record<string, string> = {
-      PENDING: "badge-warning", CONFIRMED: "badge-success", PROCESSING: "badge-accent",
-      SHIPPED: "badge-accent", DELIVERED: "badge-success", CANCELLED: "badge-error",
-    };
-    return <span className={`badge ${colors[status] || "badge-warning"} text-xs`}>{status}</span>;
-  };
 
   if (loading) return <div className="p-8"><p className="text-text-primary/50">Loading...</p></div>;
 
@@ -91,7 +73,6 @@ export default function AdminOrdersPage() {
                 <th className="text-left text-xs font-medium text-text-primary/50 uppercase px-3 sm:px-6 py-3">Total</th>
                 <th className="text-left text-xs font-medium text-text-primary/50 uppercase px-3 sm:px-6 py-3">Status</th>
                 <th className="text-left text-xs font-medium text-text-primary/50 uppercase px-3 sm:px-6 py-3 hidden md:table-cell">Payment</th>
-                <th className="text-left text-xs font-medium text-text-primary/50 uppercase px-3 sm:px-6 py-3">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -115,16 +96,10 @@ export default function AdminOrdersPage() {
                     <td className="px-3 sm:px-6 py-3 hidden md:table-cell">
                       <span className={`badge text-xs ${order.paymentStatus === "CONFIRMED" ? "badge-success" : "badge-warning"}`}>{order.paymentStatus}</span>
                     </td>
-                    <td className="px-3 sm:px-6 py-3">
-                      <div className="flex gap-2">
-                        <button onClick={() => notifyCustomer(order)} className="text-xs text-accent hover:underline whitespace-nowrap">📧 Notify</button>
-                      </div>
-                    </td>
                   </tr>
-                  {/* Expanded row: Address + Contact */}
                   {expandedOrder === order.id && order.address && (
                     <tr key={`${order.id}-details`} className="bg-secondary-dark/30">
-                      <td colSpan={6} className="px-3 sm:px-6 py-4">
+                      <td colSpan={5} className="px-3 sm:px-6 py-4">
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
                           <div>
                             <p className="font-medium text-text-primary mb-2">📦 Shipping Address</p>
