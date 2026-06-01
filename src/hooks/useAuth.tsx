@@ -15,7 +15,7 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string; role?: string }>;
-  register: (data: { firstName: string; lastName: string; email: string; password: string }) => Promise<{ success: boolean; error?: string; role?: string }>;
+  register: (data: { firstName: string; lastName: string; email: string; password: string; referralCode?: string }) => Promise<{ success: boolean; error?: string; role?: string }>;
   logout: () => Promise<void>;
 }
 
@@ -66,6 +66,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     lastName: string;
     email: string;
     password: string;
+    referralCode?: string;
   }) {
     try {
       const res = await fetch("/api/auth/register", {

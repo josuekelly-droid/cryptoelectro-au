@@ -119,6 +119,32 @@ export async function POST(req: NextRequest) {
     }).catch((err) => console.error("Email send error:", err));
   }
 
+  // ============ NOTIFICATION ADMIN ============
+const admins = await prisma.user.findMany({
+  where: { role: "ADMIN" },
+  select: { email: true, firstName: true },
+});
+
+for (const admin of admins) {
+  if (admin.email) {
+    sendOrderConfirmationEmail(admin.email, {
+      orderNumber: `[ADMIN] ${order.orderNumber}`,
+      customerName: `${user?.firstName} ${user?.lastName}`,
+      items: orderItems.map((i: any) => ({
+        name: productMap.get(i.productId) || "Product",
+        quantity: i.quantity,
+        price: Number(i.price),
+      })),
+      subtotal,
+      shipping: Number(body.shipping || 0),
+      tax: Number(body.tax || 0),
+      total,
+      cryptoCurrency: body.cryptoCurrency || undefined,
+      paymentMethod: body.cryptoCurrency ? "crypto" : "card",
+    }).catch((err) => console.error("Admin email error:", err));
+  }
+}
+
   // Mettre à jour les points de fidélité
   const earnedPoints = Math.floor(subtotal * 10);
 
@@ -169,6 +195,65 @@ export async function POST(req: NextRequest) {
       }
     } catch (error) {
       console.error("Affiliate tracking error:", error);
+    }
+  }
+
+  // ============ REFERRAL REWARD ============
+  if (user?.referredBy && !user.referralRewardClaimed) {
+    try {
+      // Compter les commandes confirmées du filleul
+      const orderCount = await prisma.order.count({
+        where: { userId, status: { not: "CANCELLED" } },
+      });
+
+      if (orderCount === 1) {
+        // Première commande : attribuer la récompense
+        const REWARD_AMOUNT = 10;
+
+        // Créditer le parrain
+        const referrerAffiliate = await prisma.affiliate.findUnique({ where: { userId: user.referredBy } });
+        if (referrerAffiliate) {
+          await prisma.affiliate.update({
+            where: { userId: user.referredBy },
+            data: { storeCredit: { increment: REWARD_AMOUNT } },
+          });
+        } else {
+          await prisma.affiliate.create({
+  data: {
+    userId: user.referredBy,
+    code: `REF-${user.referredBy.substring(0, 6).toUpperCase()}`,
+    storeCredit: REWARD_AMOUNT,
+  },
+});
+        }
+
+        // Créditer le filleul
+        const referredAffiliate = await prisma.affiliate.findUnique({ where: { userId } });
+        if (referredAffiliate) {
+          await prisma.affiliate.update({
+            where: { userId },
+            data: { storeCredit: { increment: REWARD_AMOUNT } },
+          });
+        } else {
+          await prisma.affiliate.create({
+  data: {
+    userId,
+    code: `REF-${userId.substring(0, 6).toUpperCase()}`,
+    storeCredit: REWARD_AMOUNT,
+  },
+});
+        }
+
+        // Marquer comme récompense attribuée
+        await prisma.user.update({
+          where: { id: userId },
+          data: { referralRewardClaimed: true },
+        });
+
+        console.log(`🎁 Referral reward: $${REWARD_AMOUNT} credited to referrer and referred`);
+      }
+    } catch (error) {
+      console.error("Referral reward error:", error);
     }
   }
 

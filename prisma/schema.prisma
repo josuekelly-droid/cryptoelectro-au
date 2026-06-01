@@ -24,6 +24,10 @@ model User {
 
   isBlocked Boolean @default(false)
 
+  referralCode          String?   @unique
+  referredBy            String?
+  referralRewardClaimed Boolean   @default(false)
+
   orders      Order[]
   reviews     Review[]
   wishlist    Wishlist[]

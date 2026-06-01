@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
 import { registerSchema } from "@/lib/validations";
 import { logRegister } from "@/lib/audit";
 
@@ -19,6 +20,7 @@ export async function POST(req: NextRequest) {
     }
 
     const { firstName, lastName, email, password } = parsed.data;
+    const referralCode = body.referralCode;
 
     // Check if user exists
     const existingUser = await prisma.user.findUnique({
@@ -32,8 +34,20 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Vérifier le code de parrainage
+    let referredBy: string | null = null;
+    if (referralCode) {
+      const referrer = await prisma.user.findUnique({ where: { referralCode } });
+      if (referrer) {
+        referredBy = referrer.id;
+      }
+    }
+
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 12);
+
+    // Générer le code de parrainage
+    const generatedReferralCode = `${firstName.toUpperCase().substring(0, 4)}-${crypto.randomBytes(3).toString("hex").toUpperCase()}`;
 
     // Create user
     const user = await prisma.user.create({
@@ -42,6 +56,8 @@ export async function POST(req: NextRequest) {
         lastName,
         email,
         password: hashedPassword,
+        referralCode: generatedReferralCode,
+        referredBy: referredBy || null,
       },
     });
 

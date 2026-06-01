@@ -121,7 +121,7 @@ export default function CheckoutPage() {
         await fetch("/api/affiliate/withdraw", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ type: "store_credit", amount: savedCreditApplied }),
+          body: JSON.stringify({ type: "use_credit", amount: savedCreditApplied }),
         });
         // Recharger le crédit pour le prochain checkout
         loadStoreCredit();

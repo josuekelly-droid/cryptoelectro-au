@@ -2,17 +2,21 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
 
 export default function RegisterPage() {
+  const searchParams = useSearchParams();
+  const refFromUrl = searchParams.get("ref") || "";
+
   const [form, setForm] = useState({
     firstName: "",
     lastName: "",
     email: "",
     password: "",
     confirmPassword: "",
+    referralCode: refFromUrl,
   });
   const [showPassword, setShowPassword] = useState(false);
   const [agreeTerms, setAgreeTerms] = useState(false);
@@ -45,6 +49,7 @@ export default function RegisterPage() {
       lastName: form.lastName,
       email: form.email,
       password: form.password,
+      referralCode: form.referralCode,
     });
     setLoading(false);
 
@@ -148,6 +153,29 @@ export default function RegisterPage() {
                 className="input-field"
                 required
               />
+            </div>
+
+            {/* Referral Code */}
+            <div>
+              <label
+                htmlFor="referralCode"
+                className="block text-sm font-medium text-text-primary/70 mb-2"
+              >
+                Referral Code (optional)
+              </label>
+              <input
+                type="text"
+                id="referralCode"
+                value={form.referralCode}
+                onChange={handleChange}
+                placeholder="Enter a friend's code"
+                className="input-field"
+              />
+              {form.referralCode && (
+                <p className="text-xs text-success mt-1">
+                  🎁 You and your friend will both earn $10 after your first purchase!
+                </p>
+              )}
             </div>
 
             <div>

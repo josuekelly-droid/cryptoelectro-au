@@ -30,16 +30,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: `Minimum withdrawal is $${MIN_WITHDRAW}` }, { status: 400 });
   }
 
-  // Récupérer l'utilisateur pour l'email
   const user = await prisma.user.findUnique({ where: { id: userId } });
 
+  // ============ CONVERTIR EN STORE CREDIT ============
   if (type === "store_credit") {
-    // Vérifier le solde disponible (availableBalance)
     if (withdrawAmount > Number(affiliate.availableBalance)) {
       return NextResponse.json({ error: "Insufficient available balance" }, { status: 400 });
     }
 
-    // Convertir availableBalance en storeCredit
     const updated = await prisma.affiliate.update({
       where: { userId },
       data: {
@@ -49,7 +47,6 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // Envoyer l'email de confirmation
     if (user?.email) {
       sendWithdrawalConfirmationEmail(user.email, {
         customerName: user.firstName,
@@ -66,6 +63,26 @@ export async function POST(req: NextRequest) {
     });
   }
 
+  // ============ UTILISER LE STORE CREDIT (POUR ACHAT) ============
+  if (type === "use_credit") {
+    if (withdrawAmount > Number(affiliate.storeCredit)) {
+      return NextResponse.json({ error: "Insufficient store credit" }, { status: 400 });
+    }
+
+    const updated = await prisma.affiliate.update({
+      where: { userId },
+      data: {
+        storeCredit: { decrement: withdrawAmount },
+      },
+    });
+
+    return NextResponse.json({
+      message: `$${withdrawAmount} used from store credit`,
+      newStoreCredit: Number(updated.storeCredit),
+    });
+  }
+
+  // ============ RETRAIT CRYPTO ============
   if (type === "crypto") {
     if (withdrawAmount > Number(affiliate.availableBalance)) {
       return NextResponse.json({ error: "Insufficient available balance" }, { status: 400 });
@@ -92,7 +109,6 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // Envoyer l'email de confirmation
     if (user?.email) {
       sendWithdrawalConfirmationEmail(user.email, {
         customerName: user.firstName,

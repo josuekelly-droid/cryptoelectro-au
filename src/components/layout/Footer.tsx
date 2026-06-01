@@ -18,6 +18,7 @@ const footerLinks = {
       { name: "Blog", href: "/blog" },
       { name: "Contact", href: "/contact" },
       { name: "Affiliate Program", href: "/affiliate-program" },
+      { name: "Referral Program", href: "/referral-program" },
       { name: "Careers", href: "/careers" },
     ],
   },

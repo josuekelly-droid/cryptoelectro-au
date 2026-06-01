@@ -17,30 +17,40 @@ async function getUserId(req: NextRequest): Promise<string | null> {
   }
 }
 
-// GET - Récupérer les reviews d'un produit
+// GET - Récupérer les reviews d'un produit OU d'un utilisateur
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const productId = searchParams.get("productId");
+  const userId = searchParams.get("userId");
 
-  if (!productId) {
-    return NextResponse.json({ error: "productId required" }, { status: 400 });
+  // Si userId est fourni, retourner les reviews de cet utilisateur
+  if (userId) {
+    const reviews = await prisma.review.findMany({
+      where: { userId },
+      include: {
+        user: { select: { id: true, firstName: true, lastName: true } },
+        product: { select: { id: true, name: true, slug: true } },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    return NextResponse.json({ reviews });
   }
 
-  const reviews = await prisma.review.findMany({
-    where: { productId },
-    include: {
-      user: {
-        select: {
-          id: true,
-          firstName: true,
-          lastName: true,
-        },
+  // Si productId est fourni, retourner les reviews de ce produit
+  if (productId) {
+    const reviews = await prisma.review.findMany({
+      where: { productId },
+      include: {
+        user: { select: { id: true, firstName: true, lastName: true } },
       },
-    },
-    orderBy: { createdAt: "desc" },
-  });
+      orderBy: { createdAt: "desc" },
+    });
 
-  return NextResponse.json({ reviews });
+    return NextResponse.json({ reviews });
+  }
+
+  return NextResponse.json({ error: "productId or userId required" }, { status: 400 });
 }
 
 // POST - Créer une review
@@ -82,8 +92,7 @@ export async function POST(req: NextRequest) {
     select: { rating: true },
   });
 
-  const avgRating =
-    allReviews.reduce((sum, r) => sum + r.rating, 0) / allReviews.length;
+  const avgRating = allReviews.reduce((sum, r) => sum + r.rating, 0) / allReviews.length;
 
   await prisma.product.update({
     where: { id: productId },

@@ -340,6 +340,7 @@ export default function DashboardPage() {
                 { label: "Browse Products", desc: "Shop premium electronics", href: "/category/smartphones", icon: "🛒" },
                 { label: "My Wishlist", desc: `${stats.wishlistItems} saved items`, href: "/dashboard/wishlist", icon: "❤️" },
                 { label: "Affiliate Program", desc: "Earn 5% commission", href: "/dashboard/affiliate", icon: "💰" },
+                { label: "Referral Program", desc: "Earn $10 per friend", href: "/dashboard/referral", icon: "🎁" },
                 { label: "Need Help?", desc: "Contact our support team", href: "/contact", icon: "💬" },
               ].map((link) => (
                 <Link key={link.label} href={link.href} className="card p-5 flex items-center gap-4 hover:border-accent/30 transition-all group">
