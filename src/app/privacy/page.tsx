@@ -44,7 +44,7 @@ export default function PrivacyPage() {
 
         <section className="card p-6 space-y-4">
           <h2 className="text-xl font-heading font-bold text-text-primary">4. Your Rights</h2>
-          <p>You have the right to access, correct, or delete your personal data. Contact us at privacy@cryptoelectro.au to exercise these rights.</p>
+          <p>You have the right to access, correct, or delete your personal data. Contact us at cryptoelectroau@gmail.com to exercise these rights.</p>
         </section>
       </div>
     </div>

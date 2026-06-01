@@ -37,7 +37,7 @@ export default function ContactPage() {
       mainEntity: {
         "@type": "Organization",
         name: "Cryptoelectro-au",
-        email: "support@cryptoelectro.au",
+        email: "cryptoelectroau@gmail.com",
         telephone: "1300 123 456",
         address: {
           "@type": "PostalAddress",
@@ -48,7 +48,7 @@ export default function ContactPage() {
         contactPoint: {
           "@type": "ContactPoint",
           contactType: "customer service",
-          email: "support@cryptoelectro.au",
+          email: "cryptoelectroau@gmail.com",
           availableLanguage: "English",
         },
       },
@@ -97,8 +97,8 @@ export default function ContactPage() {
         </svg>
       ),
       title: "Email",
-      value: "support@cryptoelectro.au",
-      link: "mailto:support@cryptoelectro.au",
+      value: "cryptoelectroau@gmail.com",
+      link: "mailto:cryptoelectroau@gmail.com",
     },
     {
       icon: (

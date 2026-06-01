@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 
-const SITE_URL = process.env.NEXTAUTH_URL || "https://cryptoelectro.au";
+const SITE_URL = process.env.NEXTAUTH_URL || "https://cryptoelectro-au.vercel.app";
 
 export default function robots(): MetadataRoute.Robots {
   return {

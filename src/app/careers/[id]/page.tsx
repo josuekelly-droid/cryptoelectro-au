@@ -68,8 +68,8 @@ export default function CareerDetailPage() {
           <h2 className="text-xl font-heading font-bold mb-4">How to Apply</h2>
           <p className="text-text-primary/70 leading-relaxed">
             Send your resume and portfolio to{" "}
-            <a href="mailto:careers@cryptoelectro.au" className="text-accent hover:underline">
-              careers@cryptoelectro.au
+            <a href="mailto:cryptoelectroau@gmail.com" className="text-accent hover:underline">
+              cryptoelectroau@gmail.com
             </a>{" "}
             with the subject line &quot;{job.title} - Application&quot;. We review applications on a rolling basis.
           </p>
@@ -77,7 +77,7 @@ export default function CareerDetailPage() {
 
         <div className="flex gap-3 pt-4">
           <Link href="/careers" className="btn-secondary text-sm">← All Jobs</Link>
-          <a href={`mailto:careers@cryptoelectro.au?subject=${encodeURIComponent(job.title)} - Application`} className="btn-primary text-sm">Apply Now</a>
+          <a href={`mailto:cryptoelectroau@gmail.com?subject=${encodeURIComponent(job.title)} - Application`} className="btn-primary text-sm">Apply Now</a>
         </div>
       </div>
     </div>

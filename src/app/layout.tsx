@@ -31,7 +31,7 @@ const firaCode = Fira_Code({
 });
 
 // ============ SITE CONFIG ============
-const SITE_URL = process.env.NEXTAUTH_URL || "https://cryptoelectro.au";
+const SITE_URL = process.env.NEXTAUTH_URL || "https://cryptoelectro-au.vercel.app";
 const SITE_NAME = "Cryptoelectro-au";
 const SITE_DESCRIPTION =
   "Australia's premium electronics marketplace with cryptocurrency payments. Shop smartphones, laptops, cameras, gaming consoles, and home appliances with Bitcoin, Ethereum, USDT, and 100+ cryptocurrencies.";
@@ -92,8 +92,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    site: "@cryptoelectroau",
-    creator: "@cryptoelectroau",
+    site: "@cryptoelectro-au",
+    creator: "@cryptoelectro-au",
     title: `${SITE_NAME} | Premium Electronics Marketplace`,
     description: SITE_DESCRIPTION,
     images: [`${SITE_URL}/og-image.png`],
