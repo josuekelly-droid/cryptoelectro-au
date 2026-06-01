@@ -26,12 +26,29 @@ export function proxy(request: NextRequest) {
     if (!token) {
       return NextResponse.redirect(new URL("/login", request.url));
     }
+    // Vérifier le rôle ADMIN dans le token JWT
+    try {
+      const payload = JSON.parse(atob(token.split(".")[1]));
+      if (payload.role !== "ADMIN") {
+        return NextResponse.redirect(new URL("/dashboard", request.url));
+      }
+    } catch {
+      return NextResponse.redirect(new URL("/login", request.url));
+    }
   }
 
   // === PROTECT API ADMIN ROUTES ===
   if (url.startsWith("/api/admin")) {
     const token = request.cookies.get("auth-token")?.value;
     if (!token) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    try {
+      const payload = JSON.parse(atob(token.split(".")[1]));
+      if (payload.role !== "ADMIN") {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      }
+    } catch {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
   }
