@@ -35,6 +35,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       customerName: referral.affiliate.user.firstName,
       amount: Number(referral.commission),
       type: "crypto",
+      walletAddress: referral.affiliate.walletAddress || undefined,
       newBalance: Number(referral.affiliate.availableBalance),
     }).catch((err) => console.error("Paid withdrawal email error:", err));
   }
