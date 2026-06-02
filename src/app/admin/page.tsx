@@ -28,6 +28,7 @@ export default function AdminPage() {
   const menuItems = [
     { icon: "📊", label: "Dashboard", href: "/admin" },
     { icon: "📦", label: "Products", href: "/admin/products" },
+    { icon: "🎫", label: "Coupons", href: "/admin/coupons" },
     { icon: "🛒", label: "Orders", href: "/admin/orders" },
     { icon: "👥", label: "Customers", href: "/admin/customers" },
     { icon: "⭐", label: "Reviews", href: "/admin/reviews" },

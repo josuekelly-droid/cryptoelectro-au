@@ -42,11 +42,26 @@ export default function CheckoutPage() {
   const [savedTotalRef, setSavedTotalRef] = useState(0);
   const [savedOrderId, setSavedOrderId] = useState("");
 
+  // Coupon states
+  const [couponCode, setCouponCode] = useState("");
+  const [couponDiscount, setCouponDiscount] = useState(0);
+  const [couponError, setCouponError] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState("");
+
   const shipping = subtotal > 500 ? 0 : 29.99;
   const tax = subtotal * 0.1;
   const discountAmount = (subtotal * loyaltyDiscount) / 100;
-  const creditApplied = useCredit ? Math.min(storeCredit, subtotal + shipping + tax - discountAmount) : 0;
-  const total = Math.max(0, subtotal + shipping + tax - discountAmount - creditApplied);
+  const creditApplied = useCredit ? Math.min(storeCredit, subtotal + shipping + tax - discountAmount - couponDiscount) : 0;
+  const total = Math.max(0, subtotal + shipping + tax - discountAmount - creditApplied - couponDiscount);
+
+  const applyCoupon = async () => {
+    setCouponError("");
+    if (!couponCode.trim()) return;
+    const res = await fetch("/api/coupons/validate", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code: couponCode, amount: subtotal }) });
+    const data = await res.json();
+    if (data.valid) { setCouponDiscount(data.discount); setAppliedCoupon(data.code); setCouponError(""); }
+    else { setCouponError(data.error); setCouponDiscount(0); setAppliedCoupon(""); }
+  };
 
   const loadStoreCredit = () => {
     fetch("/api/affiliate").then((r) => r.json()).then((d) => { if (d.affiliate?.storeCredit) setStoreCredit(Number(d.affiliate.storeCredit)); }).catch(() => {});
@@ -57,13 +72,11 @@ export default function CheckoutPage() {
     loadStoreCredit();
   }, []);
 
-  // === BOUTON PAYPAL CLASSIQUE ===
   useEffect(() => {
     if (paymentMethod === "card" && step === "payment") {
       const container = document.getElementById("paypal-button-container");
       if (!container) return;
       container.innerHTML = "";
-
       const script = document.createElement("script");
       script.src = `https://www.paypal.com/sdk/js?client-id=${process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || "test"}&currency=AUD&intent=capture`;
       script.onload = () => {
@@ -74,17 +87,14 @@ export default function CheckoutPage() {
               const data = await res.json();
               return data.id;
             },
-            onApprove: async (data: any) => {
-              await createOrderBeforePayment();
-              await onPayPalApprove(data);
-            },
-            onError: (err: any) => { setError("Payment failed. Please try again."); console.error(err); },
+            onApprove: async (data: any) => { await createOrderBeforePayment(); await onPayPalApprove(data); },
+            onError: (err: any) => { setError("Payment failed."); console.error(err); },
           }).render("#paypal-button-container");
         }
       };
       document.body.appendChild(script);
     }
-  }, [paymentMethod, step]);
+  }, [paymentMethod, step, total]);
 
   const cryptos = [
     { symbol: "TRX", name: "TRON", icon: "🔷" },
@@ -109,13 +119,13 @@ export default function CheckoutPage() {
       const addressData = await addressRes.json();
       const savedCreditApplied = creditApplied; const savedUseCredit = useCredit;
       const orderRes = await fetch("/api/orders", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ addressId: addressData.address.id, items: orderItems, paymentMethod: "card", shipping, tax, cryptoCurrency: null }) });
-      if (!orderRes.ok) { setError("Failed to create order."); setIsProcessing(false); return; }
+      if (!orderRes.ok) { setError("Failed."); setIsProcessing(false); return; }
       const orderData = await orderRes.json();
       if (savedUseCredit && savedCreditApplied > 0) { await fetch("/api/affiliate/withdraw", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ type: "use_credit", amount: savedCreditApplied }) }); loadStoreCredit(); }
+      if (appliedCoupon) { await fetch("/api/coupons/use", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code: appliedCoupon }) }); }
       setOrderNumber(orderData.order.orderNumber); setOrderTotal(total); setOrderSubtotal(subtotal); setOrderTax(tax);
       setSavedOrderId(orderData.order.id); setSavedTotalRef(total);
-      clearCart();
-      setIsProcessing(false);
+      clearCart(); setIsProcessing(false);
     } catch { setError("Network error."); setIsProcessing(false); }
   };
 
@@ -139,12 +149,14 @@ export default function CheckoutPage() {
       const addressData = await addressRes.json();
       const savedTotal = total; const savedSubtotal = subtotal; const savedTax = tax;
       const savedCrypto = selectedCrypto; const savedCreditApplied = creditApplied; const savedUseCredit = useCredit;
+      const savedCoupon = appliedCoupon;
       setSavedTotalRef(savedTotal);
       const orderRes = await fetch("/api/orders", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ addressId: addressData.address.id, items: orderItems, cryptoCurrency: savedCrypto, shipping, tax: savedTax }) });
       if (!orderRes.ok) { setError("Failed."); setIsProcessing(false); return; }
       const orderData = await orderRes.json();
       const orderId = orderData.order.id; const newOrderNumber = orderData.order.orderNumber;
       if (savedUseCredit && savedCreditApplied > 0) { await fetch("/api/affiliate/withdraw", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ type: "use_credit", amount: savedCreditApplied }) }); loadStoreCredit(); }
+      if (savedCoupon) { await fetch("/api/coupons/use", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code: savedCoupon }) }); }
       if (savedTotal === 0) { await fetch(`/api/orders/${orderId}/payment`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ paymentId: "store_credit", cryptoAddress: "store_credit", cryptoAmount: "0" }) }); await fetch(`/api/orders/${orderId}/confirm`, { method: "PUT" }); }
       setOrderNumber(newOrderNumber); setOrderTotal(savedTotal); setOrderSubtotal(savedSubtotal); setOrderTax(savedTax); clearCart();
       if (savedTotal > 0) {
@@ -195,6 +207,15 @@ export default function CheckoutPage() {
                 <button onClick={() => setPaymentMethod("crypto")} className={`flex-1 p-4 rounded-md border-2 text-center transition-all ${paymentMethod === "crypto" ? "border-accent bg-accent/5" : "border-secondary-light hover:border-text-primary/20"}`}><span className="text-2xl block mb-1">₿</span><span className="text-sm font-heading font-semibold">Cryptocurrency</span></button>
                 <button onClick={() => setPaymentMethod("card")} className={`flex-1 p-4 rounded-md border-2 text-center transition-all ${paymentMethod === "card" ? "border-accent bg-accent/5" : "border-secondary-light hover:border-text-primary/20"}`}><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8 mx-auto mb-1"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z" /></svg><span className="text-sm font-heading font-semibold">Card / PayPal</span></button>
               </div>
+
+              {/* Coupon Code */}
+              <div className="flex gap-2">
+                <input type="text" value={couponCode} onChange={(e) => setCouponCode(e.target.value)} placeholder="Coupon code" className="input-field flex-1 text-sm" />
+                <button onClick={applyCoupon} className="btn-secondary text-sm whitespace-nowrap">Apply</button>
+              </div>
+              {appliedCoupon && <p className="text-xs text-success">✅ {appliedCoupon} applied (-${couponDiscount.toFixed(2)})</p>}
+              {couponError && <p className="text-xs text-error">{couponError}</p>}
+
               {storeCredit > 0 && (<label className="flex items-center gap-3 bg-success/5 border border-success/20 rounded-lg p-4 cursor-pointer"><input type="checkbox" checked={useCredit} onChange={(e) => setUseCredit(e.target.checked)} className="w-4 h-4 rounded border-secondary-light text-accent" /><div><span className="text-sm font-medium text-success">Use Store Credit</span><p className="text-xs text-text-primary/50">You have ${storeCredit.toFixed(2)} available</p></div></label>)}
 
               {paymentMethod === "crypto" && (<div className="space-y-3"><h4 className="text-sm font-heading font-semibold">Select Cryptocurrency</h4><div className="space-y-2">{cryptos.map((c) => (<button key={c.symbol} onClick={() => setSelectedCrypto(c.symbol)} className={`w-full flex items-center gap-4 p-3 rounded-md border transition-all ${selectedCrypto === c.symbol ? "border-accent bg-accent/5" : "border-secondary-light hover:border-text-primary/20"}`}><span className="text-2xl w-8 text-center">{c.icon}</span><div className="text-left"><p className="text-sm font-medium">{c.name}</p><p className="text-xs text-text-primary/40">{c.symbol}</p></div></button>))}</div><p className="text-xs text-text-primary/40 flex items-center gap-1">🔒 Secured by NowPayments</p></div>)}
@@ -203,7 +224,7 @@ export default function CheckoutPage() {
                 <div className="space-y-4">
                   <div className="bg-accent/5 border border-accent/20 rounded-lg p-4">
                     <p className="text-sm font-medium flex items-center gap-2"><span className="text-2xl">💳</span> Pay with Card or PayPal</p>
-                    <p className="text-xs text-text-primary/50 mt-2">Click the PayPal button below to pay securely. You can use any credit/debit card or your PayPal account.</p>
+                    <p className="text-xs text-text-primary/50 mt-2">Click the PayPal button below to pay securely.</p>
                   </div>
                   <div id="paypal-button-container" className="flex justify-center"></div>
                 </div>
@@ -227,6 +248,7 @@ export default function CheckoutPage() {
               {paymentMethod === "card" && (<div className="bg-success/10 border border-success/30 rounded-lg p-4"><p className="text-sm text-success">💳 Card payment processed via PayPal.</p></div>)}
               <div className="space-y-2">
                 {loyaltyDiscount > 0 && <p className="text-sm text-success">🎁 {loyaltyDiscount}% loyalty discount applied!</p>}
+                {couponDiscount > 0 && <p className="text-sm text-success">🎫 Coupon {appliedCoupon} (-${couponDiscount.toFixed(2)})</p>}
                 {creditApplied > 0 && <p className="text-sm text-success">🛒 ${creditApplied.toFixed(2)} store credit applied!</p>}
                 <p><span className="text-text-primary/50">Subtotal:</span> <span className="font-medium">${orderSubtotal.toLocaleString()}</span></p>
                 <p><span className="text-text-primary/50">GST (10%):</span> <span className="font-medium">${orderTax.toFixed(2)}</span></p>
@@ -237,7 +259,7 @@ export default function CheckoutPage() {
           </AnimatePresence>
         </div>
 
-        <div className="lg:col-span-1"><div className="card p-6 sticky top-24 space-y-4"><h3 className="text-lg font-heading font-bold">Order Summary</h3><div className="space-y-3 max-h-64 overflow-y-auto">{items.length > 0 ? items.map((item) => { const brandName = typeof item.product.brand === "object" && item.product.brand !== null ? (item.product.brand as { name: string }).name : String(item.product.brand || ""); const images = item.product.images || []; const img = images.length > 0 ? (typeof images[0] === "string" ? images[0] : (images[0] as { url: string }).url) : null; return (<div key={`${item.product.id}-${item.color}`} className="flex gap-3"><div className="w-12 h-12 rounded bg-secondary-light flex-shrink-0 overflow-hidden">{img ? <img src={img} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center"><span className="text-lg font-bold text-text-primary/10">{brandName.charAt(0)}</span></div>}</div><div className="flex-1 min-w-0"><p className="text-xs font-medium line-clamp-1">{item.product.name}</p><p className="text-xs text-text-primary/40">Qty: {item.quantity} · {item.color}</p></div><p className="text-sm font-medium">${(Number(item.product.price) * item.quantity).toLocaleString()}</p></div>); }) : <p className="text-xs text-text-primary/40 text-center py-4">Order placed</p>}</div><div className="border-t border-secondary-light pt-4 space-y-2 text-sm">{step === "review" ? (<><div className="flex justify-between"><span className="text-text-primary/60">Subtotal</span><span>${orderSubtotal.toLocaleString()}</span></div>{loyaltyDiscount > 0 && <div className="flex justify-between text-success"><span>🎁 Loyalty {loyaltyDiscount}%</span><span>-${discountAmount.toFixed(2)}</span></div>}{creditApplied > 0 && <div className="flex justify-between text-success"><span>🛒 Store Credit</span><span>-${creditApplied.toFixed(2)}</span></div>}<div className="flex justify-between"><span className="text-text-primary/60">Shipping</span><span>{shipping === 0 ? "Free" : `$${shipping.toFixed(2)}`}</span></div><div className="flex justify-between"><span className="text-text-primary/60">GST (10%)</span><span>${orderTax.toFixed(2)}</span></div><div className="flex justify-between pt-2 border-t border-secondary-light"><span className="font-heading font-semibold">Total</span><span className="font-heading font-bold">${orderTotal.toFixed(2)}</span></div></>) : (<><div className="flex justify-between"><span className="text-text-primary/60">Subtotal</span><span>${subtotal.toLocaleString()}</span></div>{loyaltyDiscount > 0 && <div className="flex justify-between text-success"><span>🎁 Loyalty {loyaltyDiscount}%</span><span>-${discountAmount.toFixed(2)}</span></div>}{useCredit && <div className="flex justify-between text-success"><span>🛒 Store Credit</span><span>-${creditApplied.toFixed(2)}</span></div>}<div className="flex justify-between"><span className="text-text-primary/60">Shipping</span><span>{shipping === 0 ? "Free" : `$${shipping.toFixed(2)}`}</span></div><div className="flex justify-between"><span className="text-text-primary/60">GST (10%)</span><span>${tax.toFixed(2)}</span></div><div className="flex justify-between pt-2 border-t border-secondary-light"><span className="font-heading font-semibold">Total</span><span className="font-heading font-bold">${total.toFixed(2)}</span></div></>)}</div></div></div>
+        <div className="lg:col-span-1"><div className="card p-6 sticky top-24 space-y-4"><h3 className="text-lg font-heading font-bold">Order Summary</h3><div className="space-y-3 max-h-64 overflow-y-auto">{items.length > 0 ? items.map((item) => { const brandName = typeof item.product.brand === "object" && item.product.brand !== null ? (item.product.brand as { name: string }).name : String(item.product.brand || ""); const images = item.product.images || []; const img = images.length > 0 ? (typeof images[0] === "string" ? images[0] : (images[0] as { url: string }).url) : null; return (<div key={`${item.product.id}-${item.color}`} className="flex gap-3"><div className="w-12 h-12 rounded bg-secondary-light flex-shrink-0 overflow-hidden">{img ? <img src={img} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center"><span className="text-lg font-bold text-text-primary/10">{brandName.charAt(0)}</span></div>}</div><div className="flex-1 min-w-0"><p className="text-xs font-medium line-clamp-1">{item.product.name}</p><p className="text-xs text-text-primary/40">Qty: {item.quantity} · {item.color}</p></div><p className="text-sm font-medium">${(Number(item.product.price) * item.quantity).toLocaleString()}</p></div>); }) : <p className="text-xs text-text-primary/40 text-center py-4">Order placed</p>}</div><div className="border-t border-secondary-light pt-4 space-y-2 text-sm">{step === "review" ? (<><div className="flex justify-between"><span className="text-text-primary/60">Subtotal</span><span>${orderSubtotal.toLocaleString()}</span></div>{loyaltyDiscount > 0 && <div className="flex justify-between text-success"><span>🎁 Loyalty {loyaltyDiscount}%</span><span>-${discountAmount.toFixed(2)}</span></div>}{couponDiscount > 0 && <div className="flex justify-between text-success"><span>🎫 Coupon</span><span>-${couponDiscount.toFixed(2)}</span></div>}{creditApplied > 0 && <div className="flex justify-between text-success"><span>🛒 Store Credit</span><span>-${creditApplied.toFixed(2)}</span></div>}<div className="flex justify-between"><span className="text-text-primary/60">Shipping</span><span>{shipping === 0 ? "Free" : `$${shipping.toFixed(2)}`}</span></div><div className="flex justify-between"><span className="text-text-primary/60">GST (10%)</span><span>${orderTax.toFixed(2)}</span></div><div className="flex justify-between pt-2 border-t border-secondary-light"><span className="font-heading font-semibold">Total</span><span className="font-heading font-bold">${orderTotal.toFixed(2)}</span></div></>) : (<><div className="flex justify-between"><span className="text-text-primary/60">Subtotal</span><span>${subtotal.toLocaleString()}</span></div>{loyaltyDiscount > 0 && <div className="flex justify-between text-success"><span>🎁 Loyalty {loyaltyDiscount}%</span><span>-${discountAmount.toFixed(2)}</span></div>}{couponDiscount > 0 && <div className="flex justify-between text-success"><span>🎫 Coupon</span><span>-${couponDiscount.toFixed(2)}</span></div>}{useCredit && <div className="flex justify-between text-success"><span>🛒 Store Credit</span><span>-${creditApplied.toFixed(2)}</span></div>}<div className="flex justify-between"><span className="text-text-primary/60">Shipping</span><span>{shipping === 0 ? "Free" : `$${shipping.toFixed(2)}`}</span></div><div className="flex justify-between"><span className="text-text-primary/60">GST (10%)</span><span>${tax.toFixed(2)}</span></div><div className="flex justify-between pt-2 border-t border-secondary-light"><span className="font-heading font-semibold">Total</span><span className="font-heading font-bold">${total.toFixed(2)}</span></div></>)}</div></div></div>
       </div>
     </div>
   );
