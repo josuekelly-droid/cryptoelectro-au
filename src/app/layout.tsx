@@ -7,6 +7,7 @@ import { WishlistProvider } from "@/lib/wishlist";
 import { AuthProvider } from "@/hooks/useAuth";
 import SchemaScript from "@/components/ui/SchemaScript";
 import "./globals.css";
+import PromoBanner from "@/components/ui/PromoBanner";
 
 // ============ FONTS ============
 const montserrat = Montserrat({
@@ -158,6 +159,7 @@ export default function RootLayout({
       >
         <SchemaScript schema={organizationSchema} />
         <SchemaScript schema={websiteSchema} />
+        <PromoBanner />
         <AuthProvider>
           <WishlistProvider>
             <CartProvider>
