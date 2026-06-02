@@ -68,3 +68,5 @@ export async function GET(req: NextRequest) {
 
   return NextResponse.json({ message: `Sent ${sent} reminders` });
 }
+
+// Force redeploy v2
