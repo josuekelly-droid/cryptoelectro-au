@@ -10,10 +10,10 @@ const transporter = nodemailer.createTransport({
 const SITE_URL = process.env.NEXTAUTH_URL || "http://localhost:3000";
 
 export async function GET(req: NextRequest) {
-  const authHeader = req.headers.get("authorization");
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const authHeader = req.headers.get("authorization") || "";
+if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+}
 
   const now = new Date();
   const twoHoursAgo = new Date(now.getTime() - 2 * 60 * 60 * 1000);
