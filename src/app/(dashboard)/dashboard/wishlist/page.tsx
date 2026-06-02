@@ -1,19 +1,30 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { useWishlist } from "@/lib/wishlist";
-import { featuredProducts } from "@/lib/data";
 import ProductCard from "@/components/product/ProductCard";
 import Breadcrumb from "@/components/ui/Breadcrumb";
 
 export default function WishlistPage() {
   const { items } = useWishlist();
+  const [products, setProducts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const [shareUrl, setShareUrl] = useState("");
   const [shareMessage, setShareMessage] = useState("");
 
-  const wishlistProducts = featuredProducts.filter((p) => items.includes(p.id));
+  useEffect(() => {
+    if (items.length === 0) { setLoading(false); return; }
+    fetch(`/api/products?limit=100`)
+      .then(r => r.json())
+      .then(d => {
+        const wishlistProducts = (d.products || []).filter((p: any) => items.includes(p.id));
+        setProducts(wishlistProducts);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, [items]);
 
   const handleShare = async () => {
     const res = await fetch("/api/wishlist/share", {
@@ -30,7 +41,9 @@ export default function WishlistPage() {
     }
   };
 
-  if (wishlistProducts.length === 0) {
+  if (loading) return <div className="max-w-7xl mx-auto px-4 py-8"><p className="text-text-primary/50">Loading...</p></div>;
+
+  if (products.length === 0) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Breadcrumb items={[{ label: "Dashboard", href: "/dashboard" }, { label: "Wishlist" }]} />
@@ -53,7 +66,7 @@ export default function WishlistPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
           <h1 className="text-3xl lg:text-4xl font-heading font-bold">My Wishlist</h1>
-          <p className="mt-1 text-text-primary/50">{wishlistProducts.length} {wishlistProducts.length === 1 ? "product" : "products"} saved</p>
+          <p className="mt-1 text-text-primary/50">{products.length} {products.length === 1 ? "product" : "products"} saved</p>
         </div>
         <button onClick={handleShare} className="btn-secondary text-sm flex items-center gap-2">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M7.217 10.907a2.25 2.25 0 1 0 0 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186 9.566-5.314m-9.566 7.5 9.566 5.314m0 0a2.25 2.25 0 1 0 3.935 2.186 2.25 2.25 0 0 0-3.935-2.186Zm0-12.814a2.25 2.25 0 1 0 3.933-2.185 2.25 2.25 0 0 0-3.933 2.185Z" /></svg>
@@ -61,10 +74,7 @@ export default function WishlistPage() {
         </button>
       </div>
 
-      {shareMessage && (
-        <div className="bg-success/10 border border-success/30 text-success text-sm p-3 rounded-md mb-4">{shareMessage}</div>
-      )}
-
+      {shareMessage && <div className="bg-success/10 border border-success/30 text-success text-sm p-3 rounded-md mb-4">{shareMessage}</div>}
       {shareUrl && (
         <div className="card p-4 mb-6 flex flex-col sm:flex-row gap-3 items-start sm:items-center">
           <span className="text-sm font-medium flex-shrink-0">Public link:</span>
@@ -74,9 +84,7 @@ export default function WishlistPage() {
       )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-        {wishlistProducts.map((product, index) => (
-          <ProductCard key={product.id} product={product} index={index} />
-        ))}
+        {products.map((product, index) => <ProductCard key={product.id} product={product} index={index} />)}
       </div>
     </div>
   );
