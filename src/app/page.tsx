@@ -106,7 +106,7 @@ function HomeContent() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4 mb-8 sm:mb-12">
               <div>
-                <h2 className="text-2xl sm:text-3xl lg:text-4xl font-heading font-bold">⚡ Flash <span className="text-gradient">Deals</span></h2>
+                <h2 className="text-2xl sm:text-3xl lg:text-4xl font-heading font-bold"> Flash <span className="text-gradient">Deals</span></h2>
                 <p className="mt-2 text-sm sm:text-base text-text-primary/50">Limited time offers — grab them before they&apos;re gone!</p>
               </div>
               <Link href="/deals" className="btn-outline text-sm whitespace-nowrap">View All Deals</Link>
