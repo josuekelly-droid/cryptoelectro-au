@@ -69,7 +69,7 @@ export default function AdminCareersPage() {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div><label className="block text-sm font-medium text-text-primary/70 mb-2">Location</label><input type="text" value={form.location} onChange={e => setForm({...form, location: e.target.value})} className="input-field" /></div>
-              <div><label className="block text-sm font-medium text-text-primary/70 mb-2">Types</label><select value={form.type} onChange={e => setForm({...form, type: e.target.value})} className="input-field"><option>Full-time</option><option>Part-time</option><option>Contract</option><option>Remote</option></select></div>
+              <div><label className="block text-sm font-medium text-text-primary/70 mb-2">Type</label><select value={form.type} onChange={e => setForm({...form, type: e.target.value})} className="input-field"><option>Full-time</option><option>Part-time</option><option>Contract</option><option>Remote</option></select></div>
               <div><label className="block text-sm font-medium text-text-primary/70 mb-2">Salary</label><input type="text" value={form.salary} onChange={e => setForm({...form, salary: e.target.value})} className="input-field" placeholder="e.g. $80,000 - $100,000" /></div>
             </div>
             <div><label className="block text-sm font-medium text-text-primary/70 mb-2">Description *</label><textarea value={form.description} onChange={e => setForm({...form, description: e.target.value})} className="input-field" rows={5} required /></div>
