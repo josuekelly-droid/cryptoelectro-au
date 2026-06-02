@@ -115,7 +115,7 @@ const organizationSchema = {
   logo: `${SITE_URL}/logo.png`,
   sameAs: [
     "https://twitter.com/cryptoelectroau",
-    "https://facebook.com/cryptoelectroau",
+    "https://www.facebook.com/share/1D58ZZsbhk/",
     "https://instagram.com/cryptoelectroau",
   ],
   contactPoint: {
