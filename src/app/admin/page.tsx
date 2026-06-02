@@ -30,6 +30,7 @@ export default function AdminPage() {
     { icon: "📦", label: "Products", href: "/admin/products" },
     { icon: "🎫", label: "Coupons", href: "/admin/coupons" },
     { icon: "📢", label: "Banners", href: "/admin/banners" },
+    { icon: "⚡", label: "Deals", href: "/admin/deals" },
     { icon: "🛒", label: "Orders", href: "/admin/orders" },
     { icon: "👥", label: "Customers", href: "/admin/customers" },
     { icon: "⭐", label: "Reviews", href: "/admin/reviews" },

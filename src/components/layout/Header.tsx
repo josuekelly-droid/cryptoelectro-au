@@ -9,6 +9,7 @@ import { useWishlist } from "@/lib/wishlist";
 import { useAuth } from "@/hooks/useAuth";
 
 const navigation = [
+  { name: "Deals", href: "/deals" },
   { name: "Smartphones", href: "/category/smartphones" },
   { name: "Cameras", href: "/category/cameras" },
   { name: "Home Appliances", href: "/category/home-appliances" },
