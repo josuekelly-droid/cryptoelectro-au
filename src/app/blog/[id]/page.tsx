@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import Breadcrumb from "@/components/ui/Breadcrumb";
@@ -22,7 +22,6 @@ export default function BlogPostPage() {
         setLoading(false);
 
         if (found) {
-          // SEO dynamique
           document.title = `${found.title} - Cryptoelectro-au Blog`;
           const metaDesc = document.querySelector('meta[name="description"]');
           if (metaDesc) metaDesc.setAttribute("content", found.excerpt || found.title);
@@ -35,23 +34,14 @@ export default function BlogPostPage() {
           const canonical = document.querySelector('link[rel="canonical"]');
           if (canonical) canonical.setAttribute("href", `${SITE_URL}/blog/${found.id}`);
 
-          // Schema JSON-LD Article
           const schema = {
             "@context": "https://schema.org",
             "@type": "Article",
             headline: found.title,
             description: found.excerpt,
             image: found.image || "",
-            author: {
-              "@type": "Person",
-              name: found.author || "Cryptoelectro Team",
-            },
-            publisher: {
-              "@type": "Organization",
-              name: "Cryptoelectro-au",
-              url: SITE_URL,
-              email: "cryptoelectroau@gmail.com",
-            },
+            author: { "@type": "Person", name: found.author || "Cryptoelectro Team" },
+            publisher: { "@type": "Organization", name: "Cryptoelectro-au", url: SITE_URL, email: "cryptoelectroau@gmail.com" },
             datePublished: found.createdAt,
             dateModified: found.updatedAt || found.createdAt,
             mainEntityOfPage: `${SITE_URL}/blog/${found.id}`,
@@ -66,6 +56,29 @@ export default function BlogPostPage() {
       .catch(() => setLoading(false));
   }, [id]);
 
+  const renderLinks = (text: string): React.ReactNode[] => {
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    const parts = text.split(urlRegex);
+    const matches = text.match(urlRegex) || [];
+    return parts.map((part: string, i: number) => {
+      if ((matches as string[]).includes(part)) {
+        return <a key={i} href={part} target="_blank" rel="noopener noreferrer" className="text-accent hover:underline">{part}</a>;
+      }
+      return <React.Fragment key={i}>{part}</React.Fragment>;
+    });
+  };
+
+  const renderContent = (content: string): React.ReactNode => {
+    if (!content) return null;
+    return content.split("\n").filter((line) => line.trim() !== "").map((line, i) => {
+      if (line.startsWith("## ")) return <h2 key={i} className="text-xl sm:text-2xl font-heading font-bold mt-8 mb-4">{line.replace("## ", "")}</h2>;
+      if (line.startsWith("### ")) return <h3 key={i} className="text-lg sm:text-xl font-heading font-semibold mt-6 mb-3">{line.replace("### ", "")}</h3>;
+      if (line.startsWith("- ")) return <li key={i} className="ml-6 mb-2 text-text-primary/70 list-disc">{renderLinks(line.replace("- ", ""))}</li>;
+      if (line.match(/^\d\./)) return <li key={i} className="ml-6 mb-2 text-text-primary/70 list-decimal">{renderLinks(line.replace(/^\d\. /, ""))}</li>;
+      return <p key={i} className="text-text-primary/70 leading-relaxed mb-3">{renderLinks(line)}</p>;
+    });
+  };
+
   if (loading) return <div className="max-w-4xl mx-auto px-4 py-8"><p className="text-text-primary/50">Loading...</p></div>;
 
   if (!post) {
@@ -79,17 +92,6 @@ export default function BlogPostPage() {
       </div>
     );
   }
-
-  const renderContent = (content: string) => {
-    if (!content) return null;
-    return content.split("\n").filter((line) => line.trim() !== "").map((line, i) => {
-      if (line.startsWith("## ")) return <h2 key={i} className="text-xl sm:text-2xl font-heading font-bold mt-8 mb-4">{line.replace("## ", "")}</h2>;
-      if (line.startsWith("### ")) return <h3 key={i} className="text-lg sm:text-xl font-heading font-semibold mt-6 mb-3">{line.replace("### ", "")}</h3>;
-      if (line.startsWith("- ")) return <li key={i} className="ml-6 mb-2 text-text-primary/70 list-disc">{line.replace("- ", "")}</li>;
-      if (line.match(/^\d\./)) return <li key={i} className="ml-6 mb-2 text-text-primary/70 list-decimal">{line.replace(/^\d\. /, "")}</li>;
-      return <p key={i} className="text-text-primary/70 leading-relaxed mb-3">{line}</p>;
-    });
-  };
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -120,9 +122,7 @@ export default function BlogPostPage() {
         </div>
       </div>
 
-      <div className="prose prose-invert max-w-none">
-        {renderContent(post.content)}
-      </div>
+      <div className="prose prose-invert max-w-none">{renderContent(post.content)}</div>
 
       <div className="border-t border-secondary-light my-12" />
       <Link href="/blog" className="btn-secondary text-sm">← Back to Blog</Link>
