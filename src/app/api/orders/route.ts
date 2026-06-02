@@ -93,6 +93,12 @@ export async function POST(req: NextRequest) {
     include: { items: { include: { product: true } } },
   });
 
+  // Marquer le panier comme complété
+await prisma.abandonedCart.updateMany({
+  where: { userId },
+  data: { isCompleted: true },
+});
+
   // Log order creation
   await logOrderCreated(userId, order.orderNumber);
 

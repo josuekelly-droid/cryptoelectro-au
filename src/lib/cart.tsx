@@ -36,6 +36,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  useEffect(() => {
+  if (items.length > 0) {
+    fetch("/api/cart/track", { method: "POST" }).catch(() => {});
+  }
+}, [items.length]);
+
   // Save cart to localStorage on change
   useEffect(() => {
     localStorage.setItem("cart", JSON.stringify(items));

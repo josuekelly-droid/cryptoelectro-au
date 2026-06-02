@@ -22,6 +22,8 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
+  abandonedCart AbandonedCart?
+
   isBlocked Boolean @default(false)
 
   referralCode          String?   @unique
@@ -450,4 +452,19 @@ model SharedWishlist {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("shared_wishlists")
+}
+
+model AbandonedCart {
+  id             String   @id @default(cuid())
+  userId         String   @unique
+  lastActivity   DateTime @default(now())
+  reminderCount  Int      @default(0)
+  lastReminderAt DateTime?
+  isCompleted    Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("abandoned_carts")
 }
