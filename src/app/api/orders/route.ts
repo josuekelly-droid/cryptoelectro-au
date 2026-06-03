@@ -16,25 +16,72 @@ function getRewardTier(points: number) {
   return "BRONZE";
 }
 
+// ============ FONCTION D'ANNULATION DES COMMANDES EXPIRÉES ============
+async function cancelExpiredOrders(userId: string) {
+  const now = new Date();
+
+  const result = await prisma.order.updateMany({
+    where: {
+      userId,
+      paymentStatus: {
+        in: ["PENDING", "WAITING_CONFIRMATION"],
+      },
+      expiresAt: {
+        lte: now,
+      },
+      status: {
+        not: "CANCELLED",
+      },
+    },
+    data: {
+      status: "CANCELLED",
+      paymentStatus: "EXPIRED",
+      notes: "Commande annulée automatiquement - délai de paiement dépassé (1h)",
+    },
+  });
+
+  if (result.count > 0) {
+    console.log(
+      `🕐 ${result.count} commande(s) expirée(s) annulée(s) pour l'utilisateur ${userId}`
+    );
+  }
+
+  return result.count;
+}
+
+// ============ GET : Récupérer les commandes avec vérification d'expiration ============
 export async function GET(req: NextRequest) {
   const token = req.cookies.get("auth-token")?.value;
   if (!token) return NextResponse.json({ orders: [] });
+
   try {
     const { payload } = await jwtVerify(token, JWT_SECRET);
+    const userId = payload.userId as string;
+
+    // VÉRIFICATION ET ANNULATION DES COMMANDES EXPIRÉES AVANT DE LES RETOURNER
+    await cancelExpiredOrders(userId);
+
+    // Récupérer toutes les commandes
     const orders = await prisma.order.findMany({
-      where: { userId: payload.userId as string },
+      where: { userId },
       include: {
-        items: { include: { product: { include: { images: true, brand: true } } } },
+        items: {
+          include: {
+            product: { include: { images: true, brand: true } },
+          },
+        },
         address: true,
       },
       orderBy: { createdAt: "desc" },
     });
+
     return NextResponse.json({ orders });
   } catch {
     return NextResponse.json({ orders: [] });
   }
 }
 
+// ============ POST : Créer une commande avec expiration ============
 export async function POST(req: NextRequest) {
   const token = req.cookies.get("auth-token")?.value;
   if (!token) {
@@ -70,6 +117,9 @@ export async function POST(req: NextRequest) {
   });
   const productMap = new Map(products.map((p) => [p.id, p.name]));
 
+  // ============ CRÉATION DE LA COMMANDE AVEC expiresAt ============
+  const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // +1 heure
+
   const order = await prisma.order.create({
     data: {
       orderNumber: `CRY-${Date.now().toString(36).toUpperCase()}`,
@@ -81,6 +131,7 @@ export async function POST(req: NextRequest) {
       total,
       cryptoCurrency: body.cryptoCurrency || null,
       paymentMethod: body.cryptoCurrency ? "crypto" : "card",
+      expiresAt: expiresAt, // ⏰ AJOUTÉ : expiration après 1h
       items: {
         create: orderItems.map((i: any) => ({
           productId: i.productId,
@@ -94,10 +145,10 @@ export async function POST(req: NextRequest) {
   });
 
   // Marquer le panier comme complété
-await prisma.abandonedCart.updateMany({
-  where: { userId },
-  data: { isCompleted: true },
-});
+  await prisma.abandonedCart.updateMany({
+    where: { userId },
+    data: { isCompleted: true },
+  });
 
   // Log order creation
   await logOrderCreated(userId, order.orderNumber);
@@ -126,30 +177,30 @@ await prisma.abandonedCart.updateMany({
   }
 
   // ============ NOTIFICATION ADMIN ============
-const admins = await prisma.user.findMany({
-  where: { role: "ADMIN" },
-  select: { email: true, firstName: true },
-});
+  const admins = await prisma.user.findMany({
+    where: { role: "ADMIN" },
+    select: { email: true, firstName: true },
+  });
 
-for (const admin of admins) {
-  if (admin.email) {
-    sendOrderConfirmationEmail(admin.email, {
-      orderNumber: `[ADMIN] ${order.orderNumber}`,
-      customerName: `${user?.firstName} ${user?.lastName}`,
-      items: orderItems.map((i: any) => ({
-        name: productMap.get(i.productId) || "Product",
-        quantity: i.quantity,
-        price: Number(i.price),
-      })),
-      subtotal,
-      shipping: Number(body.shipping || 0),
-      tax: Number(body.tax || 0),
-      total,
-      cryptoCurrency: body.cryptoCurrency || undefined,
-      paymentMethod: body.cryptoCurrency ? "crypto" : "card",
-    }).catch((err) => console.error("Admin email error:", err));
+  for (const admin of admins) {
+    if (admin.email) {
+      sendOrderConfirmationEmail(admin.email, {
+        orderNumber: `[ADMIN] ${order.orderNumber}`,
+        customerName: `${user?.firstName} ${user?.lastName}`,
+        items: orderItems.map((i: any) => ({
+          name: productMap.get(i.productId) || "Product",
+          quantity: i.quantity,
+          price: Number(i.price),
+        })),
+        subtotal,
+        shipping: Number(body.shipping || 0),
+        tax: Number(body.tax || 0),
+        total,
+        cryptoCurrency: body.cryptoCurrency || undefined,
+        paymentMethod: body.cryptoCurrency ? "crypto" : "card",
+      }).catch((err) => console.error("Admin email error:", err));
+    }
   }
-}
 
   // Mettre à jour les points de fidélité
   const earnedPoints = Math.floor(subtotal * 10);
@@ -174,7 +225,9 @@ for (const admin of admins) {
 
   if (affiliateRef && order) {
     try {
-      const affiliate = await prisma.affiliate.findUnique({ where: { code: affiliateRef } });
+      const affiliate = await prisma.affiliate.findUnique({
+        where: { code: affiliateRef },
+      });
 
       if (affiliate) {
         const commission = (subtotal * 5) / 100;
@@ -197,7 +250,9 @@ for (const admin of admins) {
           },
         });
 
-        console.log(`💰 Commission of $${commission} credited to affiliate ${affiliate.code}`);
+        console.log(
+          `💰 Commission of $${commission} credited to affiliate ${affiliate.code}`
+        );
       }
     } catch (error) {
       console.error("Affiliate tracking error:", error);
@@ -217,7 +272,9 @@ for (const admin of admins) {
         const REWARD_AMOUNT = 10;
 
         // Créditer le parrain
-        const referrerAffiliate = await prisma.affiliate.findUnique({ where: { userId: user.referredBy } });
+        const referrerAffiliate = await prisma.affiliate.findUnique({
+          where: { userId: user.referredBy },
+        });
         if (referrerAffiliate) {
           await prisma.affiliate.update({
             where: { userId: user.referredBy },
@@ -225,16 +282,18 @@ for (const admin of admins) {
           });
         } else {
           await prisma.affiliate.create({
-  data: {
-    userId: user.referredBy,
-    code: `REF-${user.referredBy.substring(0, 6).toUpperCase()}`,
-    storeCredit: REWARD_AMOUNT,
-  },
-});
+            data: {
+              userId: user.referredBy,
+              code: `REF-${user.referredBy.substring(0, 6).toUpperCase()}`,
+              storeCredit: REWARD_AMOUNT,
+            },
+          });
         }
 
         // Créditer le filleul
-        const referredAffiliate = await prisma.affiliate.findUnique({ where: { userId } });
+        const referredAffiliate = await prisma.affiliate.findUnique({
+          where: { userId },
+        });
         if (referredAffiliate) {
           await prisma.affiliate.update({
             where: { userId },
@@ -242,12 +301,12 @@ for (const admin of admins) {
           });
         } else {
           await prisma.affiliate.create({
-  data: {
-    userId,
-    code: `REF-${userId.substring(0, 6).toUpperCase()}`,
-    storeCredit: REWARD_AMOUNT,
-  },
-});
+            data: {
+              userId,
+              code: `REF-${userId.substring(0, 6).toUpperCase()}`,
+              storeCredit: REWARD_AMOUNT,
+            },
+          });
         }
 
         // Marquer comme récompense attribuée
@@ -256,7 +315,9 @@ for (const admin of admins) {
           data: { referralRewardClaimed: true },
         });
 
-        console.log(`🎁 Referral reward: $${REWARD_AMOUNT} credited to referrer and referred`);
+        console.log(
+          `🎁 Referral reward: $${REWARD_AMOUNT} credited to referrer and referred`
+        );
       }
     } catch (error) {
       console.error("Referral reward error:", error);

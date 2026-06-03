@@ -48,6 +48,11 @@ export default function CheckoutPage() {
   const [couponError, setCouponError] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState("");
 
+  // ⏰ Compte à rebours
+  const [orderExpiresAt, setOrderExpiresAt] = useState<string | null>(null);
+  const [timeLeft, setTimeLeft] = useState<{ minutes: number; seconds: number } | null>(null);
+  const [isExpired, setIsExpired] = useState(false);
+
   const shipping = subtotal > 500 ? 0 : 29.99;
   const tax = subtotal * 0.1;
   const discountAmount = (subtotal * loyaltyDiscount) / 100;
@@ -71,6 +76,32 @@ export default function CheckoutPage() {
     fetch("/api/rewards").then((r) => r.json()).then((d) => setLoyaltyDiscount(d.discount || 0)).catch(() => {});
     loadStoreCredit();
   }, []);
+
+  // ⏰ Compte à rebours
+  useEffect(() => {
+    if (!orderExpiresAt) return;
+
+    const expiryDate = new Date(orderExpiresAt).getTime();
+
+    const calculateTimeLeft = () => {
+      const now = new Date().getTime();
+      const difference = expiryDate - now;
+
+      if (difference <= 0) {
+        setTimeLeft(null);
+        setIsExpired(true);
+        return;
+      }
+
+      const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+      setTimeLeft({ minutes, seconds });
+    };
+
+    calculateTimeLeft();
+    const timer = setInterval(calculateTimeLeft, 1000);
+    return () => clearInterval(timer);
+  }, [orderExpiresAt]);
 
   useEffect(() => {
     if (paymentMethod === "card" && step === "payment") {
@@ -125,6 +156,10 @@ export default function CheckoutPage() {
       if (appliedCoupon) { await fetch("/api/coupons/use", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code: appliedCoupon }) }); }
       setOrderNumber(orderData.order.orderNumber); setOrderTotal(total); setOrderSubtotal(subtotal); setOrderTax(tax);
       setSavedOrderId(orderData.order.id); setSavedTotalRef(total);
+      // ⏰ Sauvegarder la date d'expiration
+      if (orderData.order.expiresAt) {
+        setOrderExpiresAt(orderData.order.expiresAt);
+      }
       clearCart(); setIsProcessing(false);
     } catch { setError("Network error."); setIsProcessing(false); }
   };
@@ -155,6 +190,10 @@ export default function CheckoutPage() {
       if (!orderRes.ok) { setError("Failed."); setIsProcessing(false); return; }
       const orderData = await orderRes.json();
       const orderId = orderData.order.id; const newOrderNumber = orderData.order.orderNumber;
+      // ⏰ Sauvegarder la date d'expiration
+      if (orderData.order.expiresAt) {
+        setOrderExpiresAt(orderData.order.expiresAt);
+      }
       if (savedUseCredit && savedCreditApplied > 0) { await fetch("/api/affiliate/withdraw", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ type: "use_credit", amount: savedCreditApplied }) }); loadStoreCredit(); }
       if (savedCoupon) { await fetch("/api/coupons/use", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code: savedCoupon }) }); }
       if (savedTotal === 0) { await fetch(`/api/orders/${orderId}/payment`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ paymentId: "store_credit", cryptoAddress: "store_credit", cryptoAmount: "0" }) }); await fetch(`/api/orders/${orderId}/confirm`, { method: "PUT" }); }
@@ -242,6 +281,52 @@ export default function CheckoutPage() {
               <div className="w-16 h-16 rounded-full bg-success/20 flex items-center justify-center mx-auto"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-8 h-8 text-success"><path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg></div>
               <h2 className="text-2xl font-heading font-bold">Order Confirmed!</h2>
               {orderNumber && <p className="text-text-primary font-mono text-lg">Order #{orderNumber}</p>}
+
+              {/* ⏰ COMPTE À REBOURS - Paiement crypto en attente */}
+              {!isExpired && timeLeft && orderTotal > 0 && paymentMethod === "crypto" && paymentUrl && (
+                <div className={`border rounded-lg p-4 ${
+                  timeLeft.minutes < 5 
+                    ? "bg-warning/10 border-warning/30" 
+                    : "bg-accent/5 border-accent/20"
+                }`}>
+                  <div className="flex items-center gap-3">
+                    <span className={`text-2xl ${timeLeft.minutes < 5 ? "animate-pulse" : ""}`}>⏱️</span>
+                    <div className="text-left">
+                      <p className={`text-sm font-medium ${
+                        timeLeft.minutes < 5 ? "text-warning" : "text-text-primary"
+                      }`}>
+                        Temps restant pour payer
+                      </p>
+                      <p className={`text-lg font-mono font-bold ${
+                        timeLeft.minutes < 5 ? "text-warning" : "text-accent"
+                      }`}>
+                        {String(timeLeft.minutes).padStart(2, "0")}:{String(timeLeft.seconds).padStart(2, "0")}
+                      </p>
+                      {timeLeft.minutes < 5 && (
+                        <p className="text-xs text-warning mt-1">
+                          ⚠️ Dépêchez-vous ! Votre commande expire bientôt.
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* ⏰ COMMANDE EXPIRÉE */}
+              {isExpired && (
+                <div className="bg-error/10 border border-error/30 rounded-lg p-4">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">⏰</span>
+                    <div className="text-left">
+                      <p className="text-sm font-semibold text-error">Commande expirée</p>
+                      <p className="text-xs text-text-primary/60">
+                        Le délai de paiement d&apos;une heure est dépassé. Cette commande a été annulée.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {paymentUrl && (<div className="bg-accent/5 border border-accent/20 rounded-lg p-4 space-y-3 text-left"><p className="text-sm font-medium text-center">Send <strong>{paymentAmount} {selectedCrypto}</strong> to:</p><p className="text-xs font-mono bg-background p-3 rounded break-all select-all">{paymentUrl}</p><p className="text-xs text-text-primary/50 text-center">Your order will be confirmed automatically once payment is detected.</p></div>)}
               {!paymentUrl && paymentMethod === "crypto" && savedTotalRef > 0 && (<div className="bg-warning/10 border border-warning/30 rounded-lg p-4"><p className="text-sm text-warning">⚠️ Crypto payment could not be generated.</p></div>)}
               {orderTotal === 0 && (<div className="bg-success/10 border border-success/30 rounded-lg p-4"><p className="text-sm text-success">✅ Order fully covered by credits!</p></div>)}

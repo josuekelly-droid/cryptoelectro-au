@@ -61,10 +61,29 @@ async function getCryptoAmount(audAmount: number, currency: string): Promise<str
   }
 }
 
+// ============ VÉRIFICATION EXPIRATION ============
+async function isOrderExpired(orderId: string): Promise<boolean> {
+  const order = await prisma.order.findUnique({
+    where: { id: orderId },
+    select: { expiresAt: true, status: true },
+  });
+
+  if (!order || !order.expiresAt) return false;
+  
+  const expiryDate = new Date(order.expiresAt);
+  const now = new Date();
+  
+  return now > expiryDate;
+}
+
 // ============ FONCTIONS UTILITAIRES ============
-async function authenticateAndAuthorize(req: NextRequest, orderId: string): Promise<{ userId: string; order: any } | NextResponse> {
+async function authenticateAndAuthorize(
+  req: NextRequest,
+  orderId: string
+): Promise<{ userId: string; order: any } | NextResponse> {
   const token = req.cookies.get("auth-token")?.value;
-  if (!token) return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+  if (!token)
+    return NextResponse.json({ error: "Authentication required" }, { status: 401 });
 
   let userId: string;
   let userRole: string;
@@ -78,10 +97,19 @@ async function authenticateAndAuthorize(req: NextRequest, orderId: string): Prom
 
   const order = await prisma.order.findUnique({
     where: { id: orderId },
-    select: { userId: true, paymentStatus: true, total: true, cryptoCurrency: true, paymentId: true },
+    select: {
+      userId: true,
+      paymentStatus: true,
+      total: true,
+      cryptoCurrency: true,
+      paymentId: true,
+      status: true,
+      expiresAt: true, // ⏰ AJOUTÉ
+    },
   });
 
-  if (!order) return NextResponse.json({ error: "Order not found" }, { status: 404 });
+  if (!order)
+    return NextResponse.json({ error: "Order not found" }, { status: 404 });
 
   const isOwner = order.userId === userId;
   const isAdminOrManager = userRole === "ADMIN" || userRole === "MANAGER";
@@ -112,6 +140,28 @@ export async function PUT(
   try {
     const { id } = await params;
 
+    // ===== VÉRIFICATION EXPIRATION AVANT TOUT =====
+    const expired = await isOrderExpired(id);
+    if (expired) {
+      // Annuler la commande expirée
+      await prisma.order.update({
+        where: { id },
+        data: {
+          status: "CANCELLED",
+          paymentStatus: "EXPIRED",
+          notes: "Commande annulée automatiquement - délai de paiement dépassé (1h)",
+        },
+      });
+
+      return NextResponse.json(
+        {
+          error: "Cette commande a expiré. Le délai de paiement d'une heure est dépassé.",
+          code: "ORDER_EXPIRED",
+        },
+        { status: 410 }
+      );
+    }
+
     // ===== AUTH + AUTORISATION =====
     const auth = await authenticateAndAuthorize(req, id);
     if (auth instanceof NextResponse) return auth;
@@ -126,17 +176,33 @@ export async function PUT(
         where: { action: "PAYMENT_UPDATED", details: { contains: idempotencyKey } },
       });
       if (existingLog) {
-        return NextResponse.json({ message: "Payment already processed", order: { id } }, { status: 200 });
+        return NextResponse.json(
+          { message: "Payment already processed", order: { id } },
+          { status: 200 }
+        );
       }
     }
 
     // ===== PROTECTION STATUT + CONCURRENCE =====
+    if (order.status === "CANCELLED") {
+      return NextResponse.json(
+        { error: "Cette commande a été annulée" },
+        { status: 410 }
+      );
+    }
+
     if (order.paymentStatus === "CONFIRMED") {
-      return NextResponse.json({ error: "Order is already paid and cannot be modified" }, { status: 409 });
+      return NextResponse.json(
+        { error: "Order is already paid and cannot be modified" },
+        { status: 409 }
+      );
     }
 
     if (order.paymentId) {
-      return NextResponse.json({ error: "Payment already in progress. Cannot modify." }, { status: 409 });
+      return NextResponse.json(
+        { error: "Payment already in progress. Cannot modify." },
+        { status: 409 }
+      );
     }
 
     const allowed = getAllowedTransitions(order.paymentStatus);
@@ -151,7 +217,10 @@ export async function PUT(
     const parsed = paymentSchema.safeParse(body);
     if (!parsed.success) {
       return NextResponse.json(
-        { error: "Invalid data: " + parsed.error.issues.map(i => i.message).join(", ") },
+        {
+          error:
+            "Invalid data: " + parsed.error.issues.map((i) => i.message).join(", "),
+        },
         { status: 400 }
       );
     }
@@ -184,6 +253,7 @@ export async function PUT(
           cryptoAddress,
           cryptoAmount,
           paymentStatus: "WAITING_CONFIRMATION",
+          expiresAt: new Date(Date.now() + 60 * 60 * 1000), // ⏰ RÉINITIALISER L'EXPIRATION À +1H
         },
       });
     });
@@ -204,9 +274,15 @@ export async function PUT(
 
     return NextResponse.json({ order: updatedOrder });
   } catch (error: any) {
-    if (error.message === "CONCURRENT_MODIFICATION" || error.message === "STATUS_CHANGED") {
+    if (
+      error.message === "CONCURRENT_MODIFICATION" ||
+      error.message === "STATUS_CHANGED"
+    ) {
       return NextResponse.json(
-        { error: "Payment information was modified by another request. Please try again." },
+        {
+          error:
+            "Payment information was modified by another request. Please try again.",
+        },
         { status: 409 }
       );
     }
