@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 
-const SITE_URL = process.env.NEXTAUTH_URL || "https://cryptoelectro-au.vercel.app";
+const SITE_URL = process.env.NEXTAUTH_URL || "https://cryptoelectro-au.store";
 
 export async function GET() {
   let products: { slug: string; updatedAt: Date }[] = [];
