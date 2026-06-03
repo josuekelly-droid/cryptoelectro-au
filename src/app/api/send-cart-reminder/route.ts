@@ -8,9 +8,8 @@ export async function POST(req: NextRequest) {
 
     if (!email) return NextResponse.json({ error: "Email required" }, { status: 400 });
 
-    // Vérifier que les variables d'env sont définies
     if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
-      return NextResponse.json({ error: "Email config missing: " + (process.env.GMAIL_USER ? "USER OK" : "USER MISSING") + " / " + (process.env.GMAIL_APP_PASSWORD ? "PASS OK" : "PASS MISSING") }, { status: 500 });
+      return NextResponse.json({ error: "Email config missing" }, { status: 500 });
     }
 
     const transporter = nodemailer.createTransport({
@@ -20,19 +19,21 @@ export async function POST(req: NextRequest) {
 
     const SITE_URL = process.env.NEXTAUTH_URL || "https://cryptoelectro-au.vercel.app";
 
+    const isFirst = type === "first";
+
     await transporter.sendMail({
       from: `"Cryptoelectro-au" <${process.env.GMAIL_USER}>`,
       to: email,
-      subject: type === "first" ? "You left something in your cart" : "Your cart is about to expire",
-      html: `<p>Hi ${firstName},</p><p>Test email from Cryptoelectro-au.</p><p><a href="${SITE_URL}/cart">Return to Cart</a></p>`,
+      subject: isFirst ? "You left something in your cart 🛒" : "Your cart is about to expire ⏰",
+      html: isFirst
+        ? `<div style="font-family:Arial,sans-serif;max-width:500px;padding:20px"><h2 style="color:#007BFF">Cryptoelectro-au</h2><p>Hi ${firstName},</p><p>We noticed you added items to your cart but didn't complete your purchase. Your items are still waiting for you!</p><p style="margin:20px 0"><a href="${SITE_URL}/cart" style="background:#007BFF;color:#fff;padding:12px 24px;text-decoration:none;border-radius:8px;font-weight:bold">Return to Cart</a></p><p style="color:#666;font-size:12px">If you have any questions, reply to this email or contact our support team.</p><p style="color:#666;font-size:12px">Don't want these reminders? <a href="${SITE_URL}/dashboard/settings">Unsubscribe</a></p></div>`
+        : `<div style="font-family:Arial,sans-serif;max-width:500px;padding:20px"><h2 style="color:#007BFF">Cryptoelectro-au</h2><p>Hi ${firstName},</p><p>Your cart is still waiting! Don't miss out on your items — they may sell out soon.</p><p style="margin:20px 0"><a href="${SITE_URL}/cart" style="background:#007BFF;color:#fff;padding:12px 24px;text-decoration:none;border-radius:8px;font-weight:bold">Complete Your Order</a></p><p style="color:#666;font-size:12px">This is the last reminder we'll send about this cart. If you have questions, our support team is here to help.</p></div>`,
     });
 
-    if (cartId !== "test") {
-      await prisma.abandonedCart.update({
-        where: { id: cartId },
-        data: { reminderCount: { increment: 1 }, lastReminderAt: new Date() },
-      });
-    }
+    await prisma.abandonedCart.update({
+      where: { id: cartId },
+      data: { reminderCount: { increment: 1 }, lastReminderAt: new Date() },
+    });
 
     return NextResponse.json({ message: "Sent to " + email });
   } catch (error: any) {
