@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import Link from "next/link";
 import Breadcrumb from "@/components/ui/Breadcrumb";
+import Script from "next/script";
 
 const benefits = [
   {
@@ -219,6 +220,63 @@ const testimonials = [
   },
 ];
 
+// ============ SCHEMA.ORG STRUCTURED DATA ============
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": faqs.map((f) => ({
+    "@type": "Question",
+    "name": f.q,
+    "acceptedAnswer": {
+      "@type": "Answer",
+      "text": f.a,
+    },
+  })),
+};
+
+const organizationSchema = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "Cryptoelectro-au",
+  "url": "https://cryptoelectro-au.store",
+  "description": "Australia's premium electronics marketplace. Buy smartphones, laptops, and gadgets with cryptocurrency.",
+  "sameAs": [
+    "https://cryptoelectro-au.store",
+  ],
+};
+
+const breadcrumbSchema = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Home",
+      "item": "https://cryptoelectro-au.store",
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Affiliate Program",
+      "item": "https://cryptoelectro-au.store/affiliate-program",
+    },
+  ],
+};
+
+const howToSchema = {
+  "@context": "https://schema.org",
+  "@type": "HowTo",
+  "name": "How to Earn with Cryptoelectro-au Affiliate Program",
+  "description": "Five simple steps to start earning crypto commissions as a Cryptoelectro-au affiliate.",
+  "step": howItWorks.map((step, i) => ({
+    "@type": "HowToStep",
+    "position": i + 1,
+    "name": step.title,
+    "text": step.description,
+  })),
+};
+
 export default function AffiliateProgramPage() {
   const row1Ref = useRef<HTMLDivElement>(null);
   const row2Ref = useRef<HTMLDivElement>(null);
@@ -250,136 +308,190 @@ export default function AffiliateProgramPage() {
   const row3 = testimonials.slice(12, 18);
 
   return (
-    <div className="min-h-screen">
-      {/* Hero */}
-      <section className="relative overflow-hidden py-16 lg:py-24">
-        <div className="absolute inset-0 bg-gradient-to-br from-accent/10 via-transparent to-success/5" />
-        <div className="absolute top-10 right-10 w-72 h-72 bg-accent/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-10 left-10 w-96 h-96 bg-success/5 rounded-full blur-3xl" />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
-          <Breadcrumb items={[{ label: "Affiliate Program" }]} />
-          <div className="text-center max-w-3xl mx-auto mt-8">
-            <span className="badge badge-accent text-sm mb-4 inline-block">💰 Earn Passive Income</span>
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-heading font-bold leading-tight">Turn Your Audience Into <span className="text-gradient">Crypto Income</span></h1>
-            <p className="mt-6 text-lg sm:text-xl text-text-primary/60 leading-relaxed">Join the Cryptoelectro-au Affiliate Program and earn 5% commission on every purchase made through your link. Real products, real commissions, paid in real cryptocurrency. Start earning today — it&apos;s free.</p>
-            <div className="flex flex-wrap gap-4 justify-center mt-8">
-              <Link href="/register" className="btn-primary text-base px-8 py-4">Start Earning Now</Link>
-              <Link href="#how-it-works" className="btn-secondary text-base px-8 py-4">How It Works</Link>
-            </div>
-            <div className="flex flex-wrap justify-center gap-6 mt-8 text-sm text-text-primary/40">
-              <span>✅ Free to join</span><span>✅ No limits</span><span>✅ Paid in crypto</span><span>✅ 30-day tracking</span>
-            </div>
-          </div>
-        </div>
-      </section>
+    <>
+      {/* ============ JSON-LD STRUCTURED DATA ============ */}
+      <Script
+        id="schema-faq"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+      />
+      <Script
+        id="schema-organization"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+      />
+      <Script
+        id="schema-breadcrumb"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+      />
+      <Script
+        id="schema-howto"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(howToSchema) }}
+      />
 
-      {/* Stats */}
-      <section className="py-12 bg-secondary-dark/30">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 text-center">
-            {[{ value: "5%", label: "Commission Rate" },{ value: "1,000+", label: "Active Affiliates" },{ value: "$50K+", label: "Paid in Commissions" },{ value: "30 Days", label: "Cookie Duration" }].map(s => (
-              <div key={s.label} className="card p-6"><p className="text-3xl lg:text-4xl font-heading font-bold text-accent">{s.value}</p><p className="text-sm text-text-primary/50 mt-1">{s.label}</p></div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Benefits */}
-      <section className="py-16 lg:py-24">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl lg:text-4xl font-heading font-bold">Why Join the <span className="text-gradient">Cryptoelectro-au</span> Affiliate Program?</h2>
-            <p className="mt-4 text-text-primary/50 max-w-xl mx-auto">More than just commissions — a complete earning ecosystem</p>
-          </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {benefits.map(b => (
-              <div key={b.title} className="card p-6 hover:border-accent/20 transition-all group">
-                <span className="text-3xl block mb-4">{b.icon}</span>
-                <h3 className="text-lg font-heading font-bold mb-2 group-hover:text-accent transition-colors">{b.title}</h3>
-                <p className="text-sm text-text-primary/60 leading-relaxed">{b.description}</p>
+      <div className="min-h-screen">
+        {/* Hero */}
+        <section className="relative overflow-hidden py-16 lg:py-24" aria-labelledby="hero-heading">
+          <div className="absolute inset-0 bg-gradient-to-br from-accent/10 via-transparent to-success/5" />
+          <div className="absolute top-10 right-10 w-72 h-72 bg-accent/10 rounded-full blur-3xl" />
+          <div className="absolute bottom-10 left-10 w-96 h-96 bg-success/5 rounded-full blur-3xl" />
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+            <Breadcrumb items={[{ label: "Affiliate Program" }]} />
+            <div className="text-center max-w-3xl mx-auto mt-8">
+              <span className="badge badge-accent text-sm mb-4 inline-block">💰 Earn Passive Income</span>
+              <h1 id="hero-heading" className="text-4xl sm:text-5xl lg:text-6xl font-heading font-bold leading-tight">Turn Your Audience Into <span className="text-gradient">Crypto Income</span></h1>
+              <p className="mt-6 text-lg sm:text-xl text-text-primary/60 leading-relaxed">Join the Cryptoelectro-au Affiliate Program and earn 5% commission on every purchase made through your link. Real products, real commissions, paid in real cryptocurrency. Start earning today — it&apos;s free.</p>
+              <div className="flex flex-wrap gap-4 justify-center mt-8">
+                <Link href="/register" className="btn-primary text-base px-8 py-4" aria-label="Create your free affiliate account">Start Earning Now</Link>
+                <Link href="#how-it-works" className="btn-secondary text-base px-8 py-4">How It Works</Link>
               </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* How It Works */}
-      <section id="how-it-works" className="py-16 lg:py-24 bg-secondary-dark/30">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl lg:text-4xl font-heading font-bold">How It <span className="text-gradient">Works</span></h2>
-            <p className="mt-4 text-text-primary/50 max-w-xl mx-auto">Five simple steps to start earning crypto commissions</p>
-          </div>
-          <div className="space-y-6">
-            {howItWorks.map(s => (
-              <div key={s.step} className="card p-6 flex gap-6 items-start group hover:border-accent/20 transition-all">
-                <div className="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center flex-shrink-0 group-hover:bg-accent/20 transition-all"><span className="text-lg font-heading font-bold text-accent">{s.step}</span></div>
-                <div><h3 className="text-lg font-heading font-bold mb-1">{s.title}</h3><p className="text-sm text-text-primary/60">{s.description}</p></div>
+              <div className="flex flex-wrap justify-center gap-6 mt-8 text-sm text-text-primary/40">
+                <span>✅ Free to join</span><span>✅ No limits</span><span>✅ Paid in crypto</span><span>✅ 30-day tracking</span>
               </div>
-            ))}
+            </div>
           </div>
-          <div className="text-center mt-10"><Link href="/register" className="btn-primary text-base px-8 py-4">Create Your Free Account & Start Earning</Link></div>
-        </div>
-      </section>
+        </section>
 
-      {/* Testimonials Carousel */}
-      <section className="py-16 lg:py-24 overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-12">
-          <div className="text-center">
-            <h2 className="text-3xl lg:text-4xl font-heading font-bold">Trusted by <span className="text-gradient">1,000+ Affiliates</span></h2>
-            <p className="mt-4 text-text-primary/50 max-w-xl mx-auto">Real affiliates. Real results. Real crypto earnings.</p>
-          </div>
-        </div>
-        {[row1, row2, row3].map((row, ri) => (
-          <div key={ri} className="relative mb-6">
-            <div ref={ri === 0 ? row1Ref : ri === 1 ? row2Ref : row3Ref} className="flex gap-6 whitespace-nowrap" style={{ width: "max-content" }}>
-              {[...row, ...row, ...row].map((t, i) => (
-                <div key={`${t.name}-${ri}-${i}`} className="card p-5 w-[340px] flex-shrink-0 hover:border-accent/20 transition-all">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${ri === 0 ? 'bg-accent/20 text-accent' : ri === 1 ? 'bg-success/20 text-success' : 'bg-warning/20 text-warning'}`}>
-                      <span className="text-sm font-heading font-bold">{t.avatar}</span>
-                    </div>
-                    <div className="min-w-0"><p className="text-sm font-heading font-semibold truncate">{t.name}</p><p className="text-xs text-text-primary/40 truncate">{t.role}</p></div>
-                  </div>
-                  <div className="flex gap-1 mb-2">{[1,2,3,4,5].map(s => (<svg key={s} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5 text-warning"><path fillRule="evenodd" d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.006 5.404.434c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.434 2.082-5.005Z" clipRule="evenodd" /></svg>))}</div>
-                  <p className="text-xs text-text-primary/60 leading-relaxed line-clamp-4 mb-3 whitespace-normal">&ldquo;{t.quote}&rdquo;</p>
-                  <div className="flex items-center justify-between pt-3 border-t border-secondary-light"><span className="text-xs text-success font-medium">{t.earnings}</span><span className="text-xs text-text-primary/30">{t.location}</span></div>
-                </div>
+        {/* Stats */}
+        <section className="py-12 bg-secondary-dark/30" aria-label="Key program statistics">
+          <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 text-center">
+              {[{ value: "5%", label: "Commission Rate" },{ value: "1,000+", label: "Active Affiliates" },{ value: "$50K+", label: "Paid in Commissions" },{ value: "30 Days", label: "Cookie Duration" }].map(s => (
+                <div key={s.label} className="card p-6"><p className="text-3xl lg:text-4xl font-heading font-bold text-accent">{s.value}</p><p className="text-sm text-text-primary/50 mt-1">{s.label}</p></div>
               ))}
             </div>
           </div>
-        ))}
-      </section>
+        </section>
 
-      {/* FAQ */}
-      <section className="py-16 lg:py-24 bg-secondary-dark/30">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12"><h2 className="text-3xl lg:text-4xl font-heading font-bold">Frequently Asked <span className="text-gradient">Questions</span></h2></div>
-          <div className="space-y-4">
-            {faqs.map(f => (<div key={f.q} className="card p-6"><h3 className="text-base font-heading font-bold mb-2">{f.q}</h3><p className="text-sm text-text-primary/60 leading-relaxed">{f.a}</p></div>))}
-          </div>
-        </div>
-      </section>
-
-      {/* CTA */}
-      <section className="py-16 lg:py-24">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="card p-8 sm:p-12 bg-gradient-to-br from-accent/10 to-secondary relative overflow-hidden">
-            <div className="absolute -top-20 -right-20 w-48 h-48 bg-accent/10 rounded-full blur-3xl" />
-            <div className="absolute -bottom-20 -left-20 w-48 h-48 bg-success/5 rounded-full blur-3xl" />
-            <div className="relative z-10">
-              <span className="text-4xl block mb-4">🚀</span>
-              <h2 className="text-3xl lg:text-4xl font-heading font-bold mb-4">Ready to Start Earning Crypto?</h2>
-              <p className="text-text-primary/60 max-w-lg mx-auto mb-8">Join 1,000+ affiliates already earning passive income with Cryptoelectro-au. It&apos;s free, takes 2 minutes, and you can start sharing your link immediately.</p>
-              <div className="flex flex-wrap gap-4 justify-center">
-                <Link href="/register" className="btn-primary text-base px-8 py-4">Create Free Account</Link>
-                <Link href="/login" className="btn-secondary text-base px-8 py-4">I Already Have an Account</Link>
-              </div>
-              <p className="text-xs text-text-primary/40 mt-4">No credit card required. Earn your first commission today.</p>
+        {/* Benefits */}
+        <section className="py-16 lg:py-24" aria-labelledby="benefits-heading">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-12">
+              <h2 id="benefits-heading" className="text-3xl lg:text-4xl font-heading font-bold">Why Join the <span className="text-gradient">Cryptoelectro-au</span> Affiliate Program?</h2>
+              <p className="mt-4 text-text-primary/50 max-w-xl mx-auto">More than just commissions — a complete earning ecosystem</p>
+            </div>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {benefits.map(b => (
+                <article key={b.title} className="card p-6 hover:border-accent/20 transition-all group">
+                  <span className="text-3xl block mb-4" aria-hidden="true">{b.icon}</span>
+                  <h3 className="text-lg font-heading font-bold mb-2 group-hover:text-accent transition-colors">{b.title}</h3>
+                  <p className="text-sm text-text-primary/60 leading-relaxed">{b.description}</p>
+                </article>
+              ))}
             </div>
           </div>
-        </div>
-      </section>
-    </div>
+        </section>
+
+        {/* How It Works */}
+        <section id="how-it-works" className="py-16 lg:py-24 bg-secondary-dark/30" aria-labelledby="how-heading">
+          <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-12">
+              <h2 id="how-heading" className="text-3xl lg:text-4xl font-heading font-bold">How It <span className="text-gradient">Works</span></h2>
+              <p className="mt-4 text-text-primary/50 max-w-xl mx-auto">Five simple steps to start earning crypto commissions</p>
+            </div>
+            <ol className="space-y-6" aria-label="Steps to become an affiliate">
+              {howItWorks.map(s => (
+                <li key={s.step} className="card p-6 flex gap-6 items-start group hover:border-accent/20 transition-all">
+                  <div className="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center flex-shrink-0 group-hover:bg-accent/20 transition-all" aria-hidden="true">
+                    <span className="text-lg font-heading font-bold text-accent">{s.step}</span>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-heading font-bold mb-1">{s.title}</h3>
+                    <p className="text-sm text-text-primary/60">{s.description}</p>
+                  </div>
+                </li>
+              ))}
+            </ol>
+            <div className="text-center mt-10">
+              <Link href="/register" className="btn-primary text-base px-8 py-4" aria-label="Create your free affiliate account">Create Your Free Account & Start Earning</Link>
+            </div>
+          </div>
+        </section>
+
+        {/* Testimonials Carousel */}
+        <section className="py-16 lg:py-24 overflow-hidden" aria-labelledby="testimonials-heading">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-12">
+            <div className="text-center">
+              <h2 id="testimonials-heading" className="text-3xl lg:text-4xl font-heading font-bold">Trusted by <span className="text-gradient">1,000+ Affiliates</span></h2>
+              <p className="mt-4 text-text-primary/50 max-w-xl mx-auto">Real affiliates. Real results. Real crypto earnings.</p>
+            </div>
+          </div>
+          {[row1, row2, row3].map((row, ri) => (
+            <div key={ri} className="relative mb-6" aria-label={`Testimonials row ${ri + 1}`}>
+              <div ref={ri === 0 ? row1Ref : ri === 1 ? row2Ref : row3Ref} className="flex gap-6 whitespace-nowrap" style={{ width: "max-content" }}>
+                {[...row, ...row, ...row].map((t, i) => (
+                  <blockquote key={`${t.name}-${ri}-${i}`} className="card p-5 w-[340px] flex-shrink-0 hover:border-accent/20 transition-all">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${ri === 0 ? 'bg-accent/20 text-accent' : ri === 1 ? 'bg-success/20 text-success' : 'bg-warning/20 text-warning'}`} aria-hidden="true">
+                        <span className="text-sm font-heading font-bold">{t.avatar}</span>
+                      </div>
+                      <div className="min-w-0">
+                        <cite className="text-sm font-heading font-semibold truncate not-italic">{t.name}</cite>
+                        <p className="text-xs text-text-primary/40 truncate">{t.role}</p>
+                      </div>
+                    </div>
+                    <div className="flex gap-1 mb-2" aria-label="5 out of 5 stars">
+                      {[1,2,3,4,5].map(s => (
+                        <svg key={s} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5 text-warning" aria-hidden="true">
+                          <path fillRule="evenodd" d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.006 5.404.434c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.434 2.082-5.005Z" clipRule="evenodd" />
+                        </svg>
+                      ))}
+                    </div>
+                    <p className="text-xs text-text-primary/60 leading-relaxed line-clamp-4 mb-3 whitespace-normal">&ldquo;{t.quote}&rdquo;</p>
+                    <div className="flex items-center justify-between pt-3 border-t border-secondary-light">
+                      <span className="text-xs text-success font-medium">{t.earnings}</span>
+                      <span className="text-xs text-text-primary/30">{t.location}</span>
+                    </div>
+                  </blockquote>
+                ))}
+              </div>
+            </div>
+          ))}
+        </section>
+
+        {/* FAQ */}
+        <section className="py-16 lg:py-24 bg-secondary-dark/30" aria-labelledby="faq-heading">
+          <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-12">
+              <h2 id="faq-heading" className="text-3xl lg:text-4xl font-heading font-bold">Frequently Asked <span className="text-gradient">Questions</span></h2>
+            </div>
+            <div className="space-y-4" itemScope itemType="https://schema.org/FAQPage">
+              {faqs.map(f => (
+                <details key={f.q} className="card p-6 group" itemScope itemProp="mainEntity" itemType="https://schema.org/Question">
+                  <summary className="cursor-pointer list-none" itemProp="name">
+                    <h3 className="text-base font-heading font-bold mb-2 inline">{f.q}</h3>
+                  </summary>
+                  <div itemScope itemProp="acceptedAnswer" itemType="https://schema.org/Answer">
+                    <p className="text-sm text-text-primary/60 leading-relaxed mt-2" itemProp="text">{f.a}</p>
+                  </div>
+                </details>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* CTA */}
+        <section className="py-16 lg:py-24" aria-labelledby="cta-heading">
+          <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <div className="card p-8 sm:p-12 bg-gradient-to-br from-accent/10 to-secondary relative overflow-hidden">
+              <div className="absolute -top-20 -right-20 w-48 h-48 bg-accent/10 rounded-full blur-3xl" />
+              <div className="absolute -bottom-20 -left-20 w-48 h-48 bg-success/5 rounded-full blur-3xl" />
+              <div className="relative z-10">
+                <span className="text-4xl block mb-4" aria-hidden="true">🚀</span>
+                <h2 id="cta-heading" className="text-3xl lg:text-4xl font-heading font-bold mb-4">Ready to Start Earning Crypto?</h2>
+                <p className="text-text-primary/60 max-w-lg mx-auto mb-8">Join 1,000+ affiliates already earning passive income with Cryptoelectro-au. It&apos;s free, takes 2 minutes, and you can start sharing your link immediately.</p>
+                <div className="flex flex-wrap gap-4 justify-center">
+                  <Link href="/register" className="btn-primary text-base px-8 py-4" aria-label="Create your free affiliate account">Create Free Account</Link>
+                  <Link href="/login" className="btn-secondary text-base px-8 py-4">I Already Have an Account</Link>
+                </div>
+                <p className="text-xs text-text-primary/40 mt-4">No credit card required. Earn your first commission today.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </>
   );
 }
