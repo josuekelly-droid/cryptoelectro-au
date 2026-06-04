@@ -20,7 +20,7 @@ export default function ExpiredOrderMessage() {
         <div>
           <p className="text-error font-heading font-semibold">Commande annulée</p>
           <p className="text-sm text-text-primary/70">
-            Le délai de paiement d&apos;une heure est dépassé. Votre commande a été automatiquement annulée.
+            Le délai de paiement de 30 minutes est dépassé. Votre commande a été automatiquement annulée.
           </p>
         </div>
       </div>
