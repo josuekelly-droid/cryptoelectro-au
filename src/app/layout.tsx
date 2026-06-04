@@ -32,7 +32,7 @@ const firaCode = Fira_Code({
 });
 
 // ============ SITE CONFIG ============
-const SITE_URL = process.env.NEXTAUTH_URL || "https://cryptoelectro-au.vercel.app";
+const SITE_URL = process.env.NEXTAUTH_URL || "https://cryptoelectro-au.store";
 const SITE_NAME = "Cryptoelectro-au";
 const SITE_DESCRIPTION =
   "Australia's premium electronics marketplace with cryptocurrency payments. Shop smartphones, laptops, cameras, gaming consoles, and home appliances with Bitcoin, Ethereum, USDT, and 100+ cryptocurrencies.";
@@ -153,6 +153,7 @@ export default function RootLayout({
         <link rel="preconnect" href="https://api.nowpayments.io" />
         <link rel="dns-prefetch" href="https://images.unsplash.com" />
         <link rel="dns-prefetch" href="https://api.nowpayments.io" />
+        <meta name="google" content="notranslate" />
       </head>
       <body
         className={`${montserrat.variable} ${sourceSans.variable} ${firaCode.variable} antialiased min-h-screen flex flex-col`}
