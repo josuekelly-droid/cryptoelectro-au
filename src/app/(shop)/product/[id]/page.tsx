@@ -142,9 +142,14 @@ export default function ProductPage() {
       <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 mt-6">
         {/* Gallery */}
         <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }} className="space-y-4">
-          <div className="card overflow-hidden aspect-square relative">
+          <div className="card overflow-hidden aspect-square relative w-full">
             {images.length > 0 ? (
-              <img src={images[activeImage]?.url || images[activeImage]} alt={product.name} className="w-full h-full object-cover" />
+              <img
+                src={images[activeImage]?.url || images[activeImage]}
+                alt={product.name}
+                className="w-full h-full object-contain sm:object-cover"
+                loading="eager"
+              />
             ) : (
               <div className="absolute inset-0 bg-gradient-to-br from-secondary-light to-secondary-dark flex items-center justify-center">
                 <span className="text-8xl font-heading font-bold text-text-primary/5">{brandName?.charAt(0) || "?"}</span>
@@ -157,8 +162,8 @@ export default function ProductPage() {
           {images.length > 1 && (
             <div className="flex gap-3 overflow-x-auto pb-2">
               {images.map((img: any, index: number) => (
-                <button key={index} onClick={() => setActiveImage(index)} className={`flex-shrink-0 w-20 h-20 rounded-md overflow-hidden border-2 transition-all ${activeImage === index ? "border-accent shadow-lg shadow-accent/20" : "border-transparent hover:border-secondary-light"}`}>
-                  <img src={img.url || img} alt={`${product.name} ${index + 1}`} className="w-full h-full object-cover" />
+                <button key={index} onClick={() => setActiveImage(index)} className={`flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-md overflow-hidden border-2 transition-all ${activeImage === index ? "border-accent shadow-lg shadow-accent/20" : "border-transparent hover:border-secondary-light"}`}>
+                  <img src={img.url || img} alt={`${product.name} ${index + 1}`} className="w-full h-full object-cover" loading="lazy" />
                 </button>
               ))}
             </div>
