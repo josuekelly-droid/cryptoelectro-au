@@ -144,7 +144,7 @@ export default function ProductPage() {
         <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }} className="space-y-4">
           <div className="card overflow-hidden aspect-square relative">
             {images.length > 0 ? (
-              <img src={images[activeImage]?.url || images[activeImage]} alt={product.name} className="w-full h-full object-cover" />
+              <img src={images[activeImage]?.url || images[activeImage]} alt={product.name} className="w-full h-full object-contain" />
             ) : (
               <div className="absolute inset-0 bg-gradient-to-br from-secondary-light to-secondary-dark flex items-center justify-center">
                 <span className="text-8xl font-heading font-bold text-text-primary/5">{brandName?.charAt(0) || "?"}</span>
