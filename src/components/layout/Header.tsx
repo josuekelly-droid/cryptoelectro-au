@@ -14,7 +14,7 @@ const navigation = [
   { name: "Home Appliances", href: "/category/home-appliances" },
   { name: "Computers", href: "/category/computers" },
   { name: "Gaming Consoles", href: "/category/gaming-consoles" },
-  { name: "Deals", href: "/deals" },
+  { name: "Flash Deals", href: "/deals" },
 ];
 
 export default function Header() {
