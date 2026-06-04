@@ -208,6 +208,7 @@ model Order {
   shipping        Decimal      @db.Decimal(10, 2) @default(0)
   tax             Decimal      @db.Decimal(10, 2) @default(0)
   total           Decimal      @db.Decimal(10, 2)
+  currency        String       @default("AUD")
   status          OrderStatus  @default(PENDING)
   paymentMethod   String       @default("crypto")
   cryptoCurrency  String?

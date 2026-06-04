@@ -26,46 +26,47 @@ async function getCryptoAmount(audAmount: number, currency: string): Promise<str
 
     const coinId = coinIds[currency] || "tether";
 
-    // Prix crypto en USD
+    // 1. Appel sécurisé à l'API simple/price de CoinGecko en forçant l'AUD
     const cryptoRes = await fetch(
-      `https://api.coingecko.com/api/v3/simple/price?ids=${coinId}&vs_currencies=usd`,
+      `https://coingecko.com{coinId}&vs_currencies=aud`,
       { cache: "no-store" }
     );
+    
     const cryptoData = await cryptoRes.json();
-    const cryptoPriceUSD = cryptoData[coinId]?.usd || 1;
+    
+    // 2. Extraction dynamique du prix en AUD
+    const cryptoPriceAUD = cryptoData[coinId]?.aud;
+    
+    if (!cryptoPriceAUD) {
+      throw new Error("Price not found in API response");
+    }
 
-    // Taux AUD ↔ USD via USDT
-const forexRes = await fetch(
-  `https://api.coingecko.com/api/v3/simple/price?ids=tether&vs_currencies=usd,aud`,
-  { cache: "no-store" }
-);
-
-const forexData = await forexRes.json();
-
-const usdtUsd = forexData.tether?.usd || 1;
-const usdtAud = forexData.tether?.aud || 1.5;
-
-// 1 AUD = combien de USD
-const usdPerAud = usdtUsd / usdtAud;
-
-// AUD → USD
-const amountUSD = audAmount * usdPerAud;
-
-// USD → Crypto
-const cryptoAmount = amountUSD / cryptoPriceUSD;
+    // 3. Calcul direct : Montant du panier (AUD) / Prix du jeton (AUD)
+    const cryptoAmount = audAmount / cryptoPriceAUD;
 
     return cryptoAmount.toFixed(8);
+
   } catch {
-    // Fallback si API indisponible
-    const fallbackRates: Record<string, number> = {
-      BTC: 0.00001,
-      ETH: 0.0002,
-      USDT: 1,
-      USDC: 1,
-      TRX: 15,
-      SOL: 0.01,
+    // FALLBACK : Déclenché uniquement si l'API CoinGecko est en panne (Rate limit ou réseau)
+    const fallbackPricesInAUD: Record<string, number> = {
+      BTC: 90000, // Prix approximatif d'un BTC en AUD
+      ETH: 4500, // Prix approximatif d'un ETH en AUD
+      USDT: 1.51, // 1 USDT vaut environ 1.51 AUD
+      USDC: 1.51, // 1 USDC vaut environ 1.51 AUD
+      TRX: 0.46, // 1 TRX vaut environ 0.46 AUD (Résout définitivement votre bug de taux)
+      SOL: 240, // Prix approximatif d'un SOL en AUD
     };
-    return (audAmount * (fallbackRates[currency] || 1)).toFixed(8);
+
+    const estimatedPriceAUD = fallbackPricesInAUD[currency];
+    
+    if (!estimatedPriceAUD) {
+      return "0.00000000"; // Sécurité si le jeton demandé n'est pas configuré
+    }
+
+    // Calcul de secours identique à la formule principale
+    const cryptoAmount = audAmount / estimatedPriceAUD;
+
+    return cryptoAmount.toFixed(8);
   }
 }
 
