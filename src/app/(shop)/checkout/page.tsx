@@ -176,7 +176,7 @@ export default function CheckoutPage() {
       if (!addressRes.ok) { setError("Failed to save address."); setIsProcessing(false); return; }
       const addressData = await addressRes.json();
       const savedCreditApplied = creditApplied; const savedUseCredit = useCredit;
-      const orderRes = await fetch("/api/orders", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ addressId: addressData.address.id, items: orderItems, paymentMethod: "card", shipping, tax, cryptoCurrency: null }) });
+      const orderRes = await fetch("/api/orders", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ addressId: addressData.address.id, items: orderItems, paymentMethod: "card", shipping, tax, cryptoCurrency: null, total: total, }) });
       if (!orderRes.ok) { setError("Failed."); setIsProcessing(false); return; }
       const orderData = await orderRes.json();
       if (savedUseCredit && savedCreditApplied > 0) { await fetch("/api/affiliate/withdraw", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ type: "use_credit", amount: savedCreditApplied }) }); loadStoreCredit(); }
@@ -215,7 +215,7 @@ export default function CheckoutPage() {
       const savedCrypto = selectedCrypto; const savedCreditApplied = creditApplied; const savedUseCredit = useCredit;
       const savedCoupon = appliedCoupon;
       setSavedTotalRef(savedTotal);
-      const orderRes = await fetch("/api/orders", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ addressId: addressData.address.id, items: orderItems, cryptoCurrency: savedCrypto, shipping, tax: savedTax }) });
+      const orderRes = await fetch("/api/orders", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ addressId: addressData.address.id, items: orderItems, cryptoCurrency: savedCrypto, shipping, tax: savedTax, total: savedTotal, subtotal: savedSubtotal, }) });
       if (!orderRes.ok) { setError("Failed."); setIsProcessing(false); return; }
       const orderData = await orderRes.json();
       const orderId = orderData.order.id; const newOrderNumber = orderData.order.orderNumber;

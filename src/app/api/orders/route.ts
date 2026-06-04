@@ -192,7 +192,7 @@ export async function POST(req: NextRequest) {
     (s: number, i: any) => s + Number(i.price) * Number(i.quantity),
     0
   );
-  const total = subtotal + Number(body.shipping || 0) + Number(body.tax || 0);
+  const total = body.total || (subtotal + Number(body.shipping || 0) + Number(body.tax || 0));
 
   // Récupérer les noms des produits pour l'email
   const productIds = orderItems.map((i: any) => i.productId);

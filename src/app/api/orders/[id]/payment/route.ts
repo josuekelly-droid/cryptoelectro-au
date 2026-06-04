@@ -167,7 +167,7 @@ export async function PUT(
         data: {
           status: "CANCELLED",
           paymentStatus: "EXPIRED",
-          notes: "Commande annulée automatiquement - délai de paiement dépassé (1h)",
+          notes: "Commande annulée automatiquement - délai de paiement dépassé (30 MIN)",
         },
       });
 
@@ -249,6 +249,15 @@ export async function PUT(
     const audAmount = Number(order.total);
     const currency = order.cryptoCurrency || "USDT";
     const cryptoAmount = await getCryptoAmount(audAmount, currency);
+
+    // 🔍 DEBUG - Vérifier la devise utilisée
+    console.log("PAYMENT_DEBUG", {
+      currency,
+      audAmount,
+      cryptoAmount,
+      orderId: id,
+      timestamp: new Date().toISOString(),
+    });
 
     // ===== MISE À JOUR AVEC TRANSACTION PRISMA (ATOMICITÉ) =====
     const updatedOrder = await prisma.$transaction(async (tx) => {
