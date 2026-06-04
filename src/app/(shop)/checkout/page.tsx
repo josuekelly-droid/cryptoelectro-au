@@ -114,7 +114,7 @@ export default function CheckoutPage() {
       setRedirectCountdown((prev) => {
         if (prev <= 1) {
           clearInterval(redirectInterval);
-          window.location.href = "/dashboard";
+          window.location.href = "/dashboard?expired=true";
           return 0;
         }
         return prev - 1;

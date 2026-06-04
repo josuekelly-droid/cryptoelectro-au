@@ -253,7 +253,7 @@ export async function PUT(
           cryptoAddress,
           cryptoAmount,
           paymentStatus: "WAITING_CONFIRMATION",
-          expiresAt: new Date(Date.now() + 60 * 60 * 1000), // ⏰ RÉINITIALISER L'EXPIRATION À +1H
+          expiresAt: new Date(Date.now() + 30 * 60 * 1000), // ⏰ RÉINITIALISER L'EXPIRATION À +1H
         },
       });
     });

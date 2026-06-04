@@ -72,7 +72,7 @@ async function cancelExpiredOrders(userId: string) {
     data: {
       status: "CANCELLED",
       paymentStatus: "EXPIRED",
-      notes: "Commande annulée automatiquement - délai de paiement dépassé (1h)",
+      notes: "Commande annulée automatiquement - délai de paiement dépassé (30 minutes)",
     },
   });
 
@@ -87,7 +87,7 @@ async function cancelExpiredOrders(userId: string) {
     const user = order.user;
 
   // Audit log pour la commande expirée
-    await logOrderExpired(userId, order.orderNumber, "Délai de paiement dépassé (1h)");
+    await logOrderExpired(userId, order.orderNumber, "Délai de paiement dépassé (30 minutes)");
 
     // Email client
     if (user?.email) {
@@ -203,7 +203,7 @@ export async function POST(req: NextRequest) {
   const productMap = new Map(products.map((p) => [p.id, p.name]));
 
   // ============ CRÉATION DE LA COMMANDE AVEC expiresAt ============
-  const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // +1 heure
+  const expiresAt = new Date(Date.now() + 30 * 60 * 1000); // +30 minutes
 
   const order = await prisma.order.create({
     data: {

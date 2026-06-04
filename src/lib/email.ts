@@ -203,7 +203,7 @@ export async function sendOrderExpiredEmail(
           
           <div style="background: #3C1518; border-left: 4px solid #DC3545; padding: 16px; border-radius: 4px; margin: 20px 0;">
             <p style="margin: 0; color: #DC3545; font-weight: bold;">⏰ Votre commande #${data.orderNumber} a été annulée</p>
-            <p style="margin: 8px 0 0; font-size: 14px;">Le délai de paiement d'une heure est dépassé. Votre commande a été automatiquement annulée.</p>
+            <p style="margin: 8px 0 0; font-size: 14px;">Le délai de paiement de 30 minutes est dépassé. Votre commande a été automatiquement annulée.</p>
           </div>
           
           <h3 style="border-bottom: 2px solid #DC3545; padding-bottom: 8px;">Récapitulatif de la commande</h3>
