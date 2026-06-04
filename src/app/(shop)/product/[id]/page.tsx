@@ -141,13 +141,13 @@ export default function ProductPage() {
 
       <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 mt-6">
         {/* Gallery */}
-        <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }} className="space-y-4">
-          <div className="card overflow-hidden aspect-square relative w-full">
+        <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }} className="space-y-4 w-full">
+          <div className="card overflow-hidden relative w-full max-w-[500px] mx-auto" style={{ aspectRatio: "1/1" }}>
             {images.length > 0 ? (
               <img
                 src={images[activeImage]?.url || images[activeImage]}
                 alt={product.name}
-                className="w-full h-full object-contain sm:object-cover"
+                className="absolute inset-0 w-full h-full object-contain"
                 loading="eager"
               />
             ) : (
@@ -160,9 +160,9 @@ export default function ProductPage() {
             )}
           </div>
           {images.length > 1 && (
-            <div className="flex gap-3 overflow-x-auto pb-2">
+            <div className="flex gap-3 overflow-x-auto pb-2 justify-center">
               {images.map((img: any, index: number) => (
-                <button key={index} onClick={() => setActiveImage(index)} className={`flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-md overflow-hidden border-2 transition-all ${activeImage === index ? "border-accent shadow-lg shadow-accent/20" : "border-transparent hover:border-secondary-light"}`}>
+                <button key={index} onClick={() => setActiveImage(index)} className={`flex-shrink-0 w-14 h-14 sm:w-20 sm:h-20 rounded-md overflow-hidden border-2 transition-all ${activeImage === index ? "border-accent shadow-lg shadow-accent/20" : "border-transparent hover:border-secondary-light"}`}>
                   <img src={img.url || img} alt={`${product.name} ${index + 1}`} className="w-full h-full object-cover" loading="lazy" />
                 </button>
               ))}
