@@ -34,17 +34,25 @@ async function getCryptoAmount(audAmount: number, currency: string): Promise<str
     const cryptoData = await cryptoRes.json();
     const cryptoPriceUSD = cryptoData[coinId]?.usd || 1;
 
-    // Taux AUD → USD (via USDT)
-    const forexRes = await fetch(
-      `https://api.coingecko.com/api/v3/simple/price?ids=tether&vs_currencies=usd,aud`,
-      { cache: "no-store" }
-    );
-    const forexData = await forexRes.json();
-    const audToUsd = (forexData.tether?.aud || 1.5) / (forexData.tether?.usd || 1);
+    // Taux AUD ↔ USD via USDT
+const forexRes = await fetch(
+  `https://api.coingecko.com/api/v3/simple/price?ids=tether&vs_currencies=usd,aud`,
+  { cache: "no-store" }
+);
 
-    // AUD → USD → Crypto
-    const amountUSD = audAmount / audToUsd;
-    const cryptoAmount = amountUSD / cryptoPriceUSD;
+const forexData = await forexRes.json();
+
+const usdtUsd = forexData.tether?.usd || 1;
+const usdtAud = forexData.tether?.aud || 1.5;
+
+// 1 AUD = combien de USD
+const usdPerAud = usdtUsd / usdtAud;
+
+// AUD → USD
+const amountUSD = audAmount * usdPerAud;
+
+// USD → Crypto
+const cryptoAmount = amountUSD / cryptoPriceUSD;
 
     return cryptoAmount.toFixed(8);
   } catch {
@@ -253,7 +261,7 @@ export async function PUT(
           cryptoAddress,
           cryptoAmount,
           paymentStatus: "WAITING_CONFIRMATION",
-          expiresAt: new Date(Date.now() + 30 * 60 * 1000), // ⏰ RÉINITIALISER L'EXPIRATION À +1H
+          expiresAt: new Date(Date.now() + 30 * 60 * 1000), // ⏰ RÉINITIALISER L'EXPIRATION À +30MIN
         },
       });
     });
