@@ -13,62 +13,71 @@ const paymentSchema = z.object({
 });
 
 // ============ SERVICE DE CONVERSION CRYPTO (API RÉELLE COINGECKO) ============
-async function getCryptoAmount(audAmount: number, currency: string): Promise<string> {
+async function getCryptoAmount(
+  audAmount: number,
+  currency: string
+): Promise<string> {
+  const coinIds: Record<string, string> = {
+    BTC: "bitcoin",
+    ETH: "ethereum",
+    USDT: "tether",
+    USDC: "usd-coin",
+    TRX: "tron",
+    SOL: "solana",
+  };
+
+  const coinId = coinIds[currency] ?? "tether";
+
   try {
-    const coinIds: Record<string, string> = {
-      BTC: "bitcoin",
-      ETH: "ethereum",
-      USDT: "tether",
-      USDC: "usd-coin",
-      TRX: "tron",
-      SOL: "solana",
-    };
-
-    const coinId = coinIds[currency] || "tether";
-
-    // 1. Appel sécurisé à l'API simple/price de CoinGecko en forçant l'AUD
     const cryptoRes = await fetch(
-      `https://coingecko.com{coinId}&vs_currencies=aud`,
+      `https://api.coingecko.com/api/v3/simple/price?ids=${coinId}&vs_currencies=aud`,
       { cache: "no-store" }
     );
-    
-    const cryptoData = await cryptoRes.json();
-    
-    // 2. Extraction dynamique du prix en AUD
-    const cryptoPriceAUD = cryptoData[coinId]?.aud;
-    
-    if (!cryptoPriceAUD) {
-      throw new Error("Price not found in API response");
+
+    if (!cryptoRes.ok) {
+      throw new Error(`CoinGecko error: ${cryptoRes.status}`);
     }
 
-    // 3. Calcul direct : Montant du panier (AUD) / Prix du jeton (AUD)
+    const cryptoData = await cryptoRes.json();
+
+    const cryptoPriceAUD = cryptoData?.[coinId]?.aud;
+
+    if (
+      typeof cryptoPriceAUD !== "number" ||
+      !Number.isFinite(cryptoPriceAUD) ||
+      cryptoPriceAUD <= 0
+    ) {
+      throw new Error("Invalid crypto price");
+    }
+
     const cryptoAmount = audAmount / cryptoPriceAUD;
 
     return cryptoAmount.toFixed(8);
+  } catch (error) {
+    console.error("Crypto price fetch failed:", error);
 
-  } catch {
-    // FALLBACK : Déclenché uniquement si l'API CoinGecko est en panne (Rate limit ou réseau)
     const fallbackPricesInAUD: Record<string, number> = {
-      BTC: 90000, // Prix approximatif d'un BTC en AUD
-      ETH: 4500, // Prix approximatif d'un ETH en AUD
-      USDT: 1.51, // 1 USDT vaut environ 1.51 AUD
-      USDC: 1.51, // 1 USDC vaut environ 1.51 AUD
-      TRX: 0.46, // 1 TRX vaut environ 0.46 AUD (Résout définitivement votre bug de taux)
-      SOL: 240, // Prix approximatif d'un SOL en AUD
+      BTC: 130000,
+      ETH: 4500,
+      USDT: 1.51,
+      USDC: 1.51,
+      TRX: 0.46,
+      SOL: 240,
     };
 
     const estimatedPriceAUD = fallbackPricesInAUD[currency];
-    
-    if (!estimatedPriceAUD) {
-      return "0.00000000"; // Sécurité si le jeton demandé n'est pas configuré
+
+    if (!estimatedPriceAUD || estimatedPriceAUD <= 0) {
+      return "0.00000000";
     }
 
-    // Calcul de secours identique à la formule principale
     const cryptoAmount = audAmount / estimatedPriceAUD;
 
     return cryptoAmount.toFixed(8);
   }
 }
+
+    
 
 // ============ VÉRIFICATION EXPIRATION ============
 async function isOrderExpired(orderId: string): Promise<boolean> {
