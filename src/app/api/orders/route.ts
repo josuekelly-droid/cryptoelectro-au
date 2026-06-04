@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { jwtVerify } from "jose";
 import { logOrderCreated } from "@/lib/audit";
-import { sendOrderConfirmationEmail } from "@/lib/email";
+import { sendOrderConfirmationEmail, sendOrderExpiredEmail, sendOrderExpiredAdminEmail } from "@/lib/email";
 
 const JWT_SECRET = new TextEncoder().encode(
   process.env.NEXTAUTH_SECRET || "cryptoelectro-au-secret-key-change-in-production"
@@ -16,11 +16,12 @@ function getRewardTier(points: number) {
   return "BRONZE";
 }
 
-// ============ FONCTION D'ANNULATION DES COMMANDES EXPIRÉES ============
+// ============ FONCTION D'ANNULATION DES COMMANDES EXPIRÉES AVEC EMAILS ============
 async function cancelExpiredOrders(userId: string) {
   const now = new Date();
 
-  const result = await prisma.order.updateMany({
+  // Trouver les commandes expirées avec les infos nécessaires pour les emails
+  const expiredOrders = await prisma.order.findMany({
     where: {
       userId,
       paymentStatus: {
@@ -33,6 +34,41 @@ async function cancelExpiredOrders(userId: string) {
         not: "CANCELLED",
       },
     },
+    select: {
+      id: true,
+      orderNumber: true,
+      total: true,
+      expiresAt: true,
+      paymentMethod: true,
+      cryptoCurrency: true,
+      items: {
+        select: {
+          quantity: true,
+          price: true,
+          product: {
+            select: {
+              name: true,
+            },
+          },
+        },
+      },
+      user: {
+        select: {
+          email: true,
+          firstName: true,
+          lastName: true,
+        },
+      },
+    },
+  });
+
+  if (expiredOrders.length === 0) return 0;
+
+  // Annuler les commandes
+  await prisma.order.updateMany({
+    where: {
+      id: { in: expiredOrders.map((o) => o.id) },
+    },
     data: {
       status: "CANCELLED",
       paymentStatus: "EXPIRED",
@@ -40,13 +76,59 @@ async function cancelExpiredOrders(userId: string) {
     },
   });
 
-  if (result.count > 0) {
-    console.log(
-      `🕐 ${result.count} commande(s) expirée(s) annulée(s) pour l'utilisateur ${userId}`
-    );
+  // Récupérer les admins une seule fois
+  const admins = await prisma.user.findMany({
+    where: { role: "ADMIN" },
+    select: { email: true },
+  });
+
+  // Envoyer les emails pour chaque commande expirée
+  for (const order of expiredOrders) {
+    const user = order.user;
+
+    // Email client
+    if (user?.email) {
+      sendOrderExpiredEmail(user.email, {
+        orderNumber: order.orderNumber,
+        customerName: user.firstName,
+        items: order.items.map((item) => ({
+          name: item.product.name,
+          quantity: item.quantity,
+          price: Number(item.price),
+        })),
+        total: Number(order.total),
+        expiredAt: order.expiresAt ? new Date(order.expiresAt).toISOString() : now.toISOString(),
+      }).catch((err) => console.error("Client expired email error:", err));
+    }
+
+    // Email admins
+    for (const admin of admins) {
+      if (admin.email) {
+        sendOrderExpiredAdminEmail(admin.email, {
+          orderNumber: order.orderNumber,
+          customerName: `${user?.firstName} ${user?.lastName}`,
+          customerEmail: user?.email || "N/A",
+          items: order.items.map((item) => ({
+            name: item.product.name,
+            quantity: item.quantity,
+            price: Number(item.price),
+          })),
+          total: Number(order.total),
+          expiredAt: order.expiresAt ? new Date(order.expiresAt).toISOString() : now.toISOString(),
+          paymentMethod: order.paymentMethod,
+          cryptoCurrency: order.cryptoCurrency,
+        }).catch((err) => console.error("Admin expired email error:", err));
+      }
+    }
+
+    console.log(`📧 Emails d'expiration envoyés pour la commande ${order.orderNumber}`);
   }
 
-  return result.count;
+  console.log(
+    `🕐 ${expiredOrders.length} commande(s) expirée(s) annulée(s) pour l'utilisateur ${userId}`
+  );
+
+  return expiredOrders.length;
 }
 
 // ============ GET : Récupérer les commandes avec vérification d'expiration ============
@@ -131,7 +213,7 @@ export async function POST(req: NextRequest) {
       total,
       cryptoCurrency: body.cryptoCurrency || null,
       paymentMethod: body.cryptoCurrency ? "crypto" : "card",
-      expiresAt: expiresAt, // ⏰ AJOUTÉ : expiration après 1h
+      expiresAt: expiresAt,
       items: {
         create: orderItems.map((i: any) => ({
           productId: i.productId,
@@ -262,16 +344,13 @@ export async function POST(req: NextRequest) {
   // ============ REFERRAL REWARD ============
   if (user?.referredBy && !user.referralRewardClaimed) {
     try {
-      // Compter les commandes confirmées du filleul
       const orderCount = await prisma.order.count({
         where: { userId, status: { not: "CANCELLED" } },
       });
 
       if (orderCount === 1) {
-        // Première commande : attribuer la récompense
         const REWARD_AMOUNT = 10;
 
-        // Créditer le parrain
         const referrerAffiliate = await prisma.affiliate.findUnique({
           where: { userId: user.referredBy },
         });
@@ -290,7 +369,6 @@ export async function POST(req: NextRequest) {
           });
         }
 
-        // Créditer le filleul
         const referredAffiliate = await prisma.affiliate.findUnique({
           where: { userId },
         });
@@ -309,7 +387,6 @@ export async function POST(req: NextRequest) {
           });
         }
 
-        // Marquer comme récompense attribuée
         await prisma.user.update({
           where: { id: userId },
           data: { referralRewardClaimed: true },

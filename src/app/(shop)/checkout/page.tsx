@@ -52,6 +52,7 @@ export default function CheckoutPage() {
   const [orderExpiresAt, setOrderExpiresAt] = useState<string | null>(null);
   const [timeLeft, setTimeLeft] = useState<{ minutes: number; seconds: number } | null>(null);
   const [isExpired, setIsExpired] = useState(false);
+  const [redirectCountdown, setRedirectCountdown] = useState(5);
 
   const shipping = subtotal > 500 ? 0 : 29.99;
   const tax = subtotal * 0.1;
@@ -77,7 +78,7 @@ export default function CheckoutPage() {
     loadStoreCredit();
   }, []);
 
-  // ⏰ Compte à rebours
+  // ⏰ Compte à rebours avec redirection automatique
   useEffect(() => {
     if (!orderExpiresAt) return;
 
@@ -102,6 +103,26 @@ export default function CheckoutPage() {
     const timer = setInterval(calculateTimeLeft, 1000);
     return () => clearInterval(timer);
   }, [orderExpiresAt]);
+
+  // 🔴 Compte à rebours de redirection après expiration
+  useEffect(() => {
+    if (!isExpired) return;
+    
+    setRedirectCountdown(5);
+    
+    const redirectInterval = setInterval(() => {
+      setRedirectCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(redirectInterval);
+          window.location.href = "/dashboard";
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(redirectInterval);
+  }, [isExpired]);
 
   useEffect(() => {
     if (paymentMethod === "card" && step === "payment") {
@@ -156,7 +177,6 @@ export default function CheckoutPage() {
       if (appliedCoupon) { await fetch("/api/coupons/use", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code: appliedCoupon }) }); }
       setOrderNumber(orderData.order.orderNumber); setOrderTotal(total); setOrderSubtotal(subtotal); setOrderTax(tax);
       setSavedOrderId(orderData.order.id); setSavedTotalRef(total);
-      // ⏰ Sauvegarder la date d'expiration
       if (orderData.order.expiresAt) {
         setOrderExpiresAt(orderData.order.expiresAt);
       }
@@ -190,7 +210,6 @@ export default function CheckoutPage() {
       if (!orderRes.ok) { setError("Failed."); setIsProcessing(false); return; }
       const orderData = await orderRes.json();
       const orderId = orderData.order.id; const newOrderNumber = orderData.order.orderNumber;
-      // ⏰ Sauvegarder la date d'expiration
       if (orderData.order.expiresAt) {
         setOrderExpiresAt(orderData.order.expiresAt);
       }
@@ -312,23 +331,31 @@ export default function CheckoutPage() {
                 </div>
               )}
 
-              {/* ⏰ COMMANDE EXPIRÉE */}
+              {/* ⏰ COMMANDE EXPIRÉE AVEC REDIRECTION */}
               {isExpired && (
-                <div className="bg-error/10 border border-error/30 rounded-lg p-4">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xl">⏰</span>
+                <div className="bg-error/10 border border-error/30 rounded-lg p-6 space-y-4">
+                  <div className="flex items-center gap-3">
+                    <span className="text-3xl">⏰</span>
                     <div className="text-left">
-                      <p className="text-sm font-semibold text-error">Commande expirée</p>
-                      <p className="text-xs text-text-primary/60">
-                        Le délai de paiement d&apos;une heure est dépassé. Cette commande a été annulée.
+                      <p className="text-lg font-heading font-bold text-error">Commande annulée</p>
+                      <p className="text-sm text-text-primary/70 mt-1">
+                        Le délai de paiement d&apos;une heure est dépassé.
+                      </p>
+                      <p className="text-sm text-text-primary/70">
+                        Cette commande a été automatiquement annulée pour non-paiement.
                       </p>
                     </div>
+                  </div>
+                  <div className="bg-background rounded-md p-3">
+                    <p className="text-xs text-text-primary/60">
+                      Redirection vers votre tableau de bord dans <span className="font-bold text-error">{redirectCountdown}</span> seconde{redirectCountdown > 1 ? "s" : ""}...
+                    </p>
                   </div>
                 </div>
               )}
 
-              {paymentUrl && (<div className="bg-accent/5 border border-accent/20 rounded-lg p-4 space-y-3 text-left"><p className="text-sm font-medium text-center">Send <strong>{paymentAmount} {selectedCrypto}</strong> to:</p><p className="text-xs font-mono bg-background p-3 rounded break-all select-all">{paymentUrl}</p><p className="text-xs text-text-primary/50 text-center">Your order will be confirmed automatically once payment is detected.</p></div>)}
-              {!paymentUrl && paymentMethod === "crypto" && savedTotalRef > 0 && (<div className="bg-warning/10 border border-warning/30 rounded-lg p-4"><p className="text-sm text-warning">⚠️ Crypto payment could not be generated.</p></div>)}
+              {paymentUrl && !isExpired && (<div className="bg-accent/5 border border-accent/20 rounded-lg p-4 space-y-3 text-left"><p className="text-sm font-medium text-center">Send <strong>{paymentAmount} {selectedCrypto}</strong> to:</p><p className="text-xs font-mono bg-background p-3 rounded break-all select-all">{paymentUrl}</p><p className="text-xs text-text-primary/50 text-center">Your order will be confirmed automatically once payment is detected.</p></div>)}
+              {!paymentUrl && paymentMethod === "crypto" && savedTotalRef > 0 && !isExpired && (<div className="bg-warning/10 border border-warning/30 rounded-lg p-4"><p className="text-sm text-warning">⚠️ Crypto payment could not be generated.</p></div>)}
               {orderTotal === 0 && (<div className="bg-success/10 border border-success/30 rounded-lg p-4"><p className="text-sm text-success">✅ Order fully covered by credits!</p></div>)}
               {paymentMethod === "card" && (<div className="bg-success/10 border border-success/30 rounded-lg p-4"><p className="text-sm text-success">💳 Card payment processed via PayPal.</p></div>)}
               <div className="space-y-2">
