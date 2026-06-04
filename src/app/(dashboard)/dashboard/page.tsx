@@ -5,7 +5,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
 import Breadcrumb from "@/components/ui/Breadcrumb";
-import { useSearchParams } from "next/navigation";
+import ExpiredOrderMessage from "@/components/dashboard/ExpiredOrderMessage";
 
 interface Order {
   id: string;
@@ -66,10 +66,6 @@ export default function DashboardPage() {
   const [passwordMessage, setPasswordMessage] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [passwordLoading, setPasswordLoading] = useState(false);
-
-  // ⏰ Message commande expirée
-  const searchParams = useSearchParams();
-  const showExpiredMessage = searchParams.get("expired") === "true";
 
   useEffect(() => {
     if (!user) return;
@@ -201,24 +197,7 @@ export default function DashboardPage() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <Breadcrumb items={[{ label: "Dashboard" }]} />
 
-      {/* ⏰ MESSAGE COMMANDE EXPIRÉE */}
-      {showExpiredMessage && (
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-error/10 border border-error/30 rounded-lg p-4 mb-6"
-        >
-          <div className="flex items-center gap-3">
-            <span className="text-2xl">⏰</span>
-            <div>
-              <p className="text-error font-heading font-semibold">Commande annulée</p>
-              <p className="text-sm text-text-primary/70">
-                Le délai de paiement d&apos;une heure est dépassé. Votre commande a été automatiquement annulée.
-              </p>
-            </div>
-          </div>
-        </motion.div>
-      )}
+      <ExpiredOrderMessage />
 
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
         <div>
