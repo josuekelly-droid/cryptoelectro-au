@@ -2,6 +2,15 @@ import { prisma } from "@/lib/prisma";
 
 const SITE_URL = process.env.NEXTAUTH_URL || "https://cryptoelectro-au.store";
 
+function escapeXml(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&apos;");
+}
+
 export async function GET() {
   let products: { slug: string; updatedAt: Date }[] = [];
   let categories: { slug: string; updatedAt: Date }[] = [];
@@ -44,19 +53,19 @@ export async function GET() {
 
   const urls = [
     ...staticPages.map((p) =>
-      `<url><loc>${SITE_URL}${p.url}</loc><lastmod>${today}</lastmod><changefreq>${p.changefreq}</changefreq><priority>${p.priority}</priority></url>`
+      `<url><loc>${escapeXml(SITE_URL)}${escapeXml(p.url)}</loc><lastmod>${today}</lastmod><changefreq>${p.changefreq}</changefreq><priority>${p.priority}</priority></url>`
     ),
     ...categories.map((c) =>
-      `<url><loc>${SITE_URL}/category/${c.slug}</loc><lastmod>${new Date(c.updatedAt).toISOString()}</lastmod><changefreq>daily</changefreq><priority>0.9</priority></url>`
+      `<url><loc>${escapeXml(SITE_URL)}/category/${escapeXml(c.slug)}</loc><lastmod>${new Date(c.updatedAt).toISOString()}</lastmod><changefreq>daily</changefreq><priority>0.9</priority></url>`
     ),
     ...products.map((p) =>
-      `<url><loc>${SITE_URL}/product/${p.slug}</loc><lastmod>${new Date(p.updatedAt).toISOString()}</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>`
+      `<url><loc>${escapeXml(SITE_URL)}/product/${escapeXml(p.slug)}</loc><lastmod>${new Date(p.updatedAt).toISOString()}</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>`
     ),
     ...blogPosts.map((b) =>
-      `<url><loc>${SITE_URL}/blog/${b.slug}</loc><lastmod>${new Date(b.updatedAt).toISOString()}</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>`
+      `<url><loc>${escapeXml(SITE_URL)}/blog/${escapeXml(b.slug)}</loc><lastmod>${new Date(b.updatedAt).toISOString()}</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>`
     ),
     ...careers.map((c) =>
-      `<url><loc>${SITE_URL}/careers/${c.slug}</loc><lastmod>${new Date(c.updatedAt).toISOString()}</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>`
+      `<url><loc>${escapeXml(SITE_URL)}/careers/${escapeXml(c.slug)}</loc><lastmod>${new Date(c.updatedAt).toISOString()}</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>`
     ),
   ];
 
