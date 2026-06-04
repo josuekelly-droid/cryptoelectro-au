@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { jwtVerify } from "jose";
-import { logOrderCreated } from "@/lib/audit";
+import { logOrderCreated, logOrderExpired } from "@/lib/audit";
 import { sendOrderConfirmationEmail, sendOrderExpiredEmail, sendOrderExpiredAdminEmail } from "@/lib/email";
 
 const JWT_SECRET = new TextEncoder().encode(
@@ -85,6 +85,9 @@ async function cancelExpiredOrders(userId: string) {
   // Envoyer les emails pour chaque commande expirée
   for (const order of expiredOrders) {
     const user = order.user;
+
+  // Audit log pour la commande expirée
+    await logOrderExpired(userId, order.orderNumber, "Délai de paiement dépassé (1h)");
 
     // Email client
     if (user?.email) {

@@ -49,6 +49,12 @@ export default function AdminAuditPage() {
                         ? "badge-error"
                         : log.action.startsWith("ADMIN")
                         ? "badge-accent"
+                        : log.action.includes("EXPIRED")
+                        ? "badge-warning"
+                        : log.action.includes("WITHDRAWAL") || log.action.includes("CREDIT")
+                        ? "badge-accent"
+                        : log.action.includes("COUPON")
+                        ? "badge-accent"
                         : "badge-success"
                     }`}>
                       {log.action}

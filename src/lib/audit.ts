@@ -49,6 +49,30 @@ export async function logPaymentReceived(orderNumber: string) {
   await logAudit({ action: "PAYMENT_RECEIVED", details: `Payment confirmed for order ${orderNumber}` });
 }
 
+export async function logOrderExpired(userId: string, orderNumber: string, reason: string = "Délai de paiement dépassé (1h)") {
+  await logAudit({ userId, action: "ORDER_EXPIRED", details: `Order ${orderNumber} expired: ${reason}` });
+}
+
+export async function logPaymentExpired(userId: string, orderNumber: string) {
+  await logAudit({ userId, action: "PAYMENT_EXPIRED", details: `Payment expired for order ${orderNumber}` });
+}
+
+export async function logPaymentInitiated(userId: string, orderNumber: string, cryptoCurrency: string, cryptoAmount: string) {
+  await logAudit({ userId, action: "PAYMENT_INITIATED", details: `Payment initiated for order ${orderNumber}: ${cryptoAmount} ${cryptoCurrency}` });
+}
+
+export async function logCouponApplied(userId: string, couponCode: string, discount: number, orderNumber: string) {
+  await logAudit({ userId, action: "COUPON_APPLIED", details: `Coupon ${couponCode} applied (-$${discount.toFixed(2)}) on order ${orderNumber}` });
+}
+
+export async function logStoreCreditUsed(userId: string, amount: number, orderNumber: string) {
+  await logAudit({ userId, action: "STORE_CREDIT_USED", details: `Store credit $${amount.toFixed(2)} used on order ${orderNumber}` });
+}
+
+export async function logAffiliateWithdrawal(userId: string, amount: number, type: string, walletAddress?: string) {
+  await logAudit({ userId, action: "AFFILIATE_WITHDRAWAL", details: `Withdrawal $${amount.toFixed(2)} as ${type}${walletAddress ? ` to ${walletAddress.substring(0, 10)}...` : ""}` });
+}
+
 export async function logAdminAction(adminId: string, action: string, details?: string) {
   await logAudit({ userId: adminId, action: `ADMIN_${action}`, details });
 }
