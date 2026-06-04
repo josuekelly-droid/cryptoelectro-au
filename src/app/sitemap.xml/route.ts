@@ -6,10 +6,12 @@ export async function GET() {
   let products: { slug: string; updatedAt: Date }[] = [];
   let categories: { slug: string; updatedAt: Date }[] = [];
   let blogPosts: { slug: string; updatedAt: Date }[] = [];
+  let careers: { slug: string; updatedAt: Date }[] = [];
 
   try { products = await prisma.product.findMany({ where: { isActive: true }, select: { slug: true, updatedAt: true } }); } catch {}
   try { categories = await prisma.category.findMany({ where: { isActive: true }, select: { slug: true, updatedAt: true } }); } catch {}
   try { blogPosts = await prisma.blogPost.findMany({ where: { published: true }, select: { slug: true, updatedAt: true } }); } catch {}
+  try { careers = await prisma.career.findMany({ where: { isActive: true }, select: { slug: true, updatedAt: true } }); } catch {}
 
   const today = new Date().toISOString();
 
@@ -21,7 +23,7 @@ export async function GET() {
     { url: "/blog", priority: "0.8", changefreq: "weekly" },
     { url: "/affiliate-program", priority: "0.9", changefreq: "weekly" },
     { url: "/referral-program", priority: "0.9", changefreq: "weekly" },
-    { url: "/careers", priority: "0.6", changefreq: "weekly" },
+    { url: "/careers", priority: "0.8", changefreq: "weekly" },
     { url: "/category/smartphones", priority: "0.9", changefreq: "daily" },
     { url: "/category/cameras", priority: "0.9", changefreq: "daily" },
     { url: "/category/computers", priority: "0.9", changefreq: "daily" },
@@ -52,6 +54,9 @@ export async function GET() {
     ),
     ...blogPosts.map((b) =>
       `<url><loc>${SITE_URL}/blog/${b.slug}</loc><lastmod>${new Date(b.updatedAt).toISOString()}</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>`
+    ),
+    ...careers.map((c) =>
+      `<url><loc>${SITE_URL}/careers/${c.slug}</loc><lastmod>${new Date(c.updatedAt).toISOString()}</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>`
     ),
   ];
 
