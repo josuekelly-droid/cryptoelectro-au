@@ -141,7 +141,7 @@ export default function ProductPage() {
 
       <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 mt-6">
         {/* Gallery */}
-        <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }} className="space-y-4">
+        <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }} className="space-y-4 min-w-0 w-full">
           <div className="card overflow-hidden aspect-square relative">
             {images.length > 0 ? (
               <img src={images[activeImage]?.url || images[activeImage]} alt={product.name} className="w-full h-full object-cover" />
@@ -155,7 +155,7 @@ export default function ProductPage() {
             )}
           </div>
           {images.length > 1 && (
-            <div className="flex gap-3 overflow-x-auto pb-2">
+            <div className="flex gap-3 overflow-x-auto pb-2 -mr-4 sm:mr-0" style={{ WebkitOverflowScrolling: "touch", scrollbarWidth: "none" }}>
               {images.map((img: any, index: number) => (
                 <button key={index} onClick={() => setActiveImage(index)} className={`flex-shrink-0 w-20 h-20 rounded-md overflow-hidden border-2 transition-all ${activeImage === index ? "border-accent shadow-lg shadow-accent/20" : "border-transparent hover:border-secondary-light"}`}>
                   <img src={img.url || img} alt={`${product.name} ${index + 1}`} className="w-full h-full object-cover" />
