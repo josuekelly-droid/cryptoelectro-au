@@ -14,6 +14,7 @@ export async function GET(req: NextRequest) {
     const sort = searchParams.get("sort") || "featured";
     const search = searchParams.get("search") || "";
     const inStock = searchParams.get("inStock") === "true";
+    const featured = searchParams.get("featured") === "true";
 
     const where: Prisma.ProductWhereInput = {
       isActive: true,
@@ -23,6 +24,7 @@ export async function GET(req: NextRequest) {
     if (category) where.category = { slug: category };
     if (brand) where.brand = { slug: brand };
     if (inStock) where.inStock = true;
+    if (featured) where.isFeatured = true;
     if (search) {
       where.OR = [
         { name: { contains: search, mode: "insensitive" } },

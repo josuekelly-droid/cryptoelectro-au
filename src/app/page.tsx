@@ -33,7 +33,7 @@ function HomeContent() {
     if (metaDesc) metaDesc.setAttribute("content", "Australia's premium electronics marketplace. Buy smartphones, laptops, cameras, and home appliances with Bitcoin, Ethereum, USDT, TRX, and 100+ cryptocurrencies. Fast shipping Australia-wide.");
     
     fetch("/api/categories").then(r => r.json()).then(d => setCategories(d.categories || []));
-    fetch("/api/products?limit=8&sort=featured").then(r => r.json()).then(d => setProducts(d.products || []));
+    fetch("/api/products?limit=8&featured=true").then(r => r.json()).then(d => setProducts(d.products || []));
     fetch("/api/brands").then(r => r.json()).then(d => setBrands(d.brands || []));
     fetch("/api/deals").then(r => r.json()).then(d => setDeals(d.deals || []));
   }, []);
@@ -92,7 +92,7 @@ function HomeContent() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4 mb-8 sm:mb-12">
             <div><h2 className="text-2xl sm:text-3xl lg:text-4xl font-heading font-bold">Featured <span className="text-gradient">Products</span></h2><p className="mt-2 text-sm sm:text-base text-text-primary/50">Handpicked premium electronics just for you</p></div>
-            <Link href="/category/smartphones" className="btn-outline text-sm whitespace-nowrap">View All Products</Link>
+            <Link href="/category/all" className="btn-outline text-sm whitespace-nowrap">View All Products</Link>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
             {products.slice(0, 8).map((product: any, index: number) => (<ProductCard key={product.id} product={product} index={index} />))}
