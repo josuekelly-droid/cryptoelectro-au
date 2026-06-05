@@ -22,13 +22,13 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   }
 
-  const [totalProducts, totalOrders, totalCustomers, revenue] = await Promise.all([
+    const [totalProducts, totalOrders, totalCustomers, revenue] = await Promise.all([
     prisma.product.count(),
     prisma.order.count(),
     prisma.user.count({ where: { role: "CUSTOMER" } }),
     prisma.order.aggregate({
       _sum: { total: true },
-      where: { status: { not: "CANCELLED" } },
+      where: { paymentStatus: "CONFIRMED" },
     }),
   ]);
 
