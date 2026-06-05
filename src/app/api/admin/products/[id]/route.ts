@@ -66,6 +66,8 @@ export async function PUT(
       slug: data.slug,
       description: data.description,
       shortDescription: data.shortDescription,
+      metaTitle: data.metaTitle || null,
+      metaDescription: data.metaDescription || null,
       price: data.price,
       compareAtPrice: data.compareAtPrice || null,
       brandId: data.brandId,

@@ -52,6 +52,8 @@ export async function POST(req: NextRequest) {
       slug: data.slug || data.name.toLowerCase().replace(/\s+/g, "-"),
       description: data.description,
       shortDescription: data.shortDescription,
+      metaTitle: data.metaTitle || null,
+      metaDescription: data.metaDescription || null,
       price: data.price,
       compareAtPrice: data.compareAtPrice || null,
       brandId: data.brandId,
