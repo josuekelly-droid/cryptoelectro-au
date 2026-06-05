@@ -315,7 +315,7 @@ export default function ProductForm({ product, isEditing = false }: ProductFormP
 
         {/* 🔍 SEO Section */}
         <div className="border-t border-secondary-light pt-4 mt-4">
-          <h4 className="text-sm font-heading font-bold mb-3 text-accent">🔍 SEO Meta Tags</h4>
+          <h4 className="text-sm font-heading font-bold mb-3 text-accent">SEO Meta Tags</h4>
           <div className="space-y-3">
             <div>
               <label className="block text-sm font-medium text-text-primary/70 mb-2">
@@ -327,11 +327,11 @@ export default function ProductForm({ product, isEditing = false }: ProductFormP
                 value={form.metaTitle}
                 onChange={handleChange}
                 className="input-field"
-                placeholder="Leave blank to use product name"
+                placeholder=""
                 maxLength={70}
               />
               <p className="text-xs text-text-primary/40 mt-1">
-                {form.metaTitle.length}/70 characters (Google displays ~60)
+                {form.metaTitle.length}
               </p>
             </div>
             <div>
@@ -344,11 +344,11 @@ export default function ProductForm({ product, isEditing = false }: ProductFormP
                 onChange={handleChange}
                 className="input-field resize-none"
                 rows={3}
-                placeholder="Leave blank to use short description"
+                placeholder=""
                 maxLength={160}
               />
               <p className="text-xs text-text-primary/40 mt-1">
-                {form.metaDescription.length}/160 characters (Google displays ~155)
+                {form.metaDescription.length}
               </p>
             </div>
           </div>
