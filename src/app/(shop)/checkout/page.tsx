@@ -370,11 +370,12 @@ export default function CheckoutPage() {
               {!paymentUrl && paymentMethod === "crypto" && savedTotalRef > 0 && !isExpired && (<div className="bg-warning/10 border border-warning/30 rounded-lg p-4"><p className="text-sm text-warning">⚠️ Crypto payment could not be generated.</p></div>)}
               {orderTotal === 0 && (<div className="bg-success/10 border border-success/30 rounded-lg p-4"><p className="text-sm text-success">✅ Order fully covered by credits!</p></div>)}
               {paymentMethod === "card" && (<div className="bg-success/10 border border-success/30 rounded-lg p-4"><p className="text-sm text-success">💳 Card payment processed via PayPal.</p></div>)}
-              <div className="space-y-2">
+                            <div className="space-y-2">
                 {loyaltyDiscount > 0 && <p className="text-sm text-success">🎁 {loyaltyDiscount}% loyalty discount applied!</p>}
                 {couponDiscount > 0 && <p className="text-sm text-success">🎫 Coupon {appliedCoupon} (-${couponDiscount.toFixed(2)})</p>}
                 {creditApplied > 0 && <p className="text-sm text-success">🛒 ${creditApplied.toFixed(2)} store credit applied!</p>}
                 <p><span className="text-text-primary/50">Subtotal:</span> <span className="font-medium">${orderSubtotal.toLocaleString()}</span></p>
+                <p><span className="text-text-primary/50">Shipping:</span> <span className="font-medium">{shipping === 0 ? "Free" : `$${shipping.toFixed(2)}`}</span></p>
                 <p><span className="text-text-primary/50">GST (10%):</span> <span className="font-medium">${orderTax.toFixed(2)}</span></p>
                 <p className="text-lg font-heading font-bold">Total: ${orderTotal.toFixed(2)}</p>
               </div>

@@ -287,23 +287,6 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // Mettre à jour les points de fidélité
-  const earnedPoints = Math.floor(subtotal * 10);
-
-  const existingReward = await prisma.reward.findUnique({ where: { userId } });
-  if (existingReward) {
-    const newPoints = existingReward.points + earnedPoints;
-    const newTier = getRewardTier(newPoints);
-    await prisma.reward.update({
-      where: { userId },
-      data: { points: newPoints, tier: newTier },
-    });
-  } else {
-    const newTier = getRewardTier(earnedPoints);
-    await prisma.reward.create({
-      data: { userId, points: earnedPoints, tier: newTier },
-    });
-  }
 
   // ============ AFFILIATE TRACKING ============
   const affiliateRef = req.cookies.get("affiliate_ref")?.value;

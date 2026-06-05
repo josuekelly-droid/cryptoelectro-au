@@ -1,6 +1,39 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+function getRewardTier(points: number) {
+  if (points >= 2500) return "DIAMOND";
+  if (points >= 1000) return "PLATINUM";
+  if (points >= 500) return "GOLD";
+  if (points >= 200) return "SILVER";
+  return "BRONZE";
+}
+
+async function addLoyaltyRewards(order: any) {
+  try {
+    const userId = order.userId;
+    const earnedPoints = Math.floor(Number(order.subtotal) * 10);
+
+    const existingReward = await prisma.reward.findUnique({ where: { userId } });
+    if (existingReward) {
+      const newPoints = existingReward.points + earnedPoints;
+      const newTier = getRewardTier(newPoints);
+      await prisma.reward.update({
+        where: { userId },
+        data: { points: newPoints, tier: newTier },
+      });
+    } else {
+      const newTier = getRewardTier(earnedPoints);
+      await prisma.reward.create({
+        data: { userId, points: earnedPoints, tier: newTier },
+      });
+    }
+    console.log(`🏆 ${earnedPoints} loyalty points added for user ${userId}`);
+  } catch (error) {
+    console.error("Loyalty rewards error:", error);
+  }
+}
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
@@ -10,13 +43,9 @@ export async function POST(req: NextRequest) {
       payment_id,
       payment_status,
       order_id,
-      price_amount,
-      pay_currency,
     } = body;
 
-    // Vérifier le statut du paiement
     if (payment_status === "finished" || payment_status === "confirmed") {
-      // Trouver la commande par paymentId
       const order = await prisma.order.findFirst({
         where: { paymentId: String(payment_id) },
       });
@@ -29,9 +58,10 @@ export async function POST(req: NextRequest) {
             status: "CONFIRMED",
           },
         });
+        // 🏆 Ajouter les points de fidélité après paiement confirmé
+        await addLoyaltyRewards(order);
         console.log(`✅ Order ${order.orderNumber} confirmed via IPN`);
       } else {
-        // Chercher par orderNumber si paymentId ne correspond pas
         const orderByNumber = await prisma.order.findFirst({
           where: { orderNumber: String(order_id) },
         });
@@ -45,6 +75,8 @@ export async function POST(req: NextRequest) {
               paymentId: String(payment_id),
             },
           });
+          // 🏆 Ajouter les points de fidélité après paiement confirmé
+          await addLoyaltyRewards(orderByNumber);
           console.log(`✅ Order ${order_id} confirmed via IPN`);
         }
       }
