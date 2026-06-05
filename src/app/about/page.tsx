@@ -118,7 +118,7 @@ export default function AboutPage() {
         <p className="text-text-primary/50 mb-6">
           Browse our premium collection and pay with your favorite cryptocurrency.
         </p>
-        <Link href="/category/smartphones" className="btn-primary">
+        <Link href="/category/all" className="btn-primary">
           Start Shopping
         </Link>
       </div>
