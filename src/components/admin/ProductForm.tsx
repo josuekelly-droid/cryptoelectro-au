@@ -78,6 +78,23 @@ export default function ProductForm({ product, isEditing = false }: ProductFormP
     ]
   );
 
+  // 📋 Specs paste mode
+  const [specMode, setSpecMode] = useState<"manual" | "paste">("manual");
+  const [specsText, setSpecsText] = useState("");
+
+  const applySpecsText = () => {
+    const lines = specsText.trim().split("\n").filter(Boolean);
+    const parsed = lines.map((line) => {
+      const colonIndex = line.indexOf(":");
+      if (colonIndex === -1) return { label: line, value: "" };
+      return {
+        label: line.substring(0, colonIndex).trim(),
+        value: line.substring(colonIndex + 1).trim(),
+      };
+    });
+    if (parsed.length > 0) setSpecs(parsed);
+  };
+
   const [colors, setColors] = useState<Color[]>(
     product?.colors?.map((c) => ({
       name: c.name,
@@ -466,41 +483,85 @@ export default function ProductForm({ product, isEditing = false }: ProductFormP
       <div className="card p-6 space-y-4">
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-heading font-bold">Specifications</h3>
-          <button
-            type="button"
-            onClick={addSpec}
-            className="btn-secondary text-sm"
-          >
-            + Add Spec
-          </button>
-        </div>
-        {specs.map((spec, i) => (
-          <div key={i} className="flex gap-3">
-            <input
-              type="text"
-              value={spec.label}
-              onChange={(e) => updateSpec(i, "label", e.target.value)}
-              placeholder="Label (e.g., Display)"
-              className="input-field flex-1"
-            />
-            <input
-              type="text"
-              value={spec.value}
-              onChange={(e) => updateSpec(i, "value", e.target.value)}
-              placeholder="Value (e.g., 6.8 inch AMOLED)"
-              className="input-field flex-1"
-            />
-            {specs.length > 1 && (
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => {
+                if (specMode === "paste" && specsText.trim()) {
+                  applySpecsText();
+                }
+                setSpecMode(specMode === "manual" ? "paste" : "manual");
+              }}
+              className="text-xs text-accent hover:underline"
+            >
+              {specMode === "manual" ? "📋 Paste mode" : "✏️ Manual mode"}
+            </button>
+            {specMode === "manual" && (
               <button
                 type="button"
-                onClick={() => removeSpec(i)}
-                className="text-error text-sm flex-shrink-0"
+                onClick={addSpec}
+                className="btn-secondary text-sm"
               >
-                Remove
+                + Add Spec
               </button>
             )}
           </div>
-        ))}
+        </div>
+
+        {specMode === "paste" ? (
+          <div className="space-y-3">
+            <p className="text-xs text-text-primary/40">
+              Paste your specs below — one per line, format: <strong>Label: Value</strong>
+            </p>
+            <textarea
+              value={specsText}
+              onChange={(e) => setSpecsText(e.target.value)}
+              placeholder={`Display: 6.8 inch AMOLED
+Processor: Exynos 2400
+RAM: 12 GB
+Storage: 1 TB
+Battery: 5000 mAh
+Weight: 210 g`}
+              className="input-field resize-none"
+              rows={10}
+            />
+            <button
+              type="button"
+              onClick={applySpecsText}
+              className="btn-secondary text-sm"
+            >
+              Apply Specs
+            </button>
+          </div>
+        ) : (
+          specs.map((spec, i) => (
+            <div key={i} className="flex gap-3">
+              <input
+                type="text"
+                value={spec.label}
+                onChange={(e) => updateSpec(i, "label", e.target.value)}
+                placeholder="Label (e.g., Display)"
+                className="input-field flex-1"
+              />
+              <input
+                type="text"
+                value={spec.value}
+                onChange={(e) => updateSpec(i, "value", e.target.value)}
+                placeholder="Value (e.g., 6.8 inch AMOLED)"
+                className="input-field flex-1"
+              />
+              {specs.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => removeSpec(i)}
+                  className="text-error text-sm flex-shrink-0"
+                >
+                  Remove
+                </button>
+              )}
+            </div>
+          ))
+        )}
       </div>
 
       {/* Submit */}
