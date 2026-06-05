@@ -31,6 +31,8 @@ interface ProductFormProps {
     slug?: string;
     description?: string;
     shortDescription?: string;
+    metaTitle?: string | null;
+    metaDescription?: string | null;
     price?: number;
     compareAtPrice?: number | null;
     brandId?: string;
@@ -58,6 +60,8 @@ export default function ProductForm({ product, isEditing = false }: ProductFormP
     slug: product?.slug || "",
     description: product?.description || "",
     shortDescription: product?.shortDescription || "",
+    metaTitle: product?.metaTitle || product?.name || "",
+    metaDescription: product?.metaDescription || product?.shortDescription || product?.description?.substring(0, 160) || "",
     price: product?.price || 0,
     compareAtPrice: product?.compareAtPrice?.toString() || "",
     brandId: product?.brandId || "",
@@ -307,6 +311,47 @@ export default function ProductForm({ product, isEditing = false }: ProductFormP
             rows={5}
             required
           />
+        </div>
+
+        {/* 🔍 SEO Section */}
+        <div className="border-t border-secondary-light pt-4 mt-4">
+          <h4 className="text-sm font-heading font-bold mb-3 text-accent">🔍 SEO Meta Tags</h4>
+          <div className="space-y-3">
+            <div>
+              <label className="block text-sm font-medium text-text-primary/70 mb-2">
+                Meta Title
+              </label>
+              <input
+                type="text"
+                name="metaTitle"
+                value={form.metaTitle}
+                onChange={handleChange}
+                className="input-field"
+                placeholder="Leave blank to use product name"
+                maxLength={70}
+              />
+              <p className="text-xs text-text-primary/40 mt-1">
+                {form.metaTitle.length}/70 characters (Google displays ~60)
+              </p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-text-primary/70 mb-2">
+                Meta Description
+              </label>
+              <textarea
+                name="metaDescription"
+                value={form.metaDescription}
+                onChange={handleChange}
+                className="input-field resize-none"
+                rows={3}
+                placeholder="Leave blank to use short description"
+                maxLength={160}
+              />
+              <p className="text-xs text-text-primary/40 mt-1">
+                {form.metaDescription.length}/160 characters (Google displays ~155)
+              </p>
+            </div>
+          </div>
         </div>
 
         <div className="flex flex-wrap gap-6">
