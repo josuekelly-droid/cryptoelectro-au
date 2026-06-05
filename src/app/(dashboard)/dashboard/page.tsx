@@ -206,7 +206,7 @@ export default function DashboardPage() {
         </div>
         <div className="flex gap-3">
           {user.role === "ADMIN" && <Link href="/admin" className="btn-secondary text-sm">Admin Panel</Link>}
-          <Link href="/category/smartphones" className="btn-primary text-sm">Shop Now</Link>
+          <Link href="/category/all" className="btn-primary text-sm">Shop Now</Link>
         </div>
       </div>
 

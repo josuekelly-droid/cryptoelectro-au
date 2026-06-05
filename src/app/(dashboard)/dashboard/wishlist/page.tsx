@@ -53,7 +53,7 @@ export default function WishlistPage() {
           </svg>
           <h2 className="text-2xl font-heading font-bold mb-2">Your Wishlist is Empty</h2>
           <p className="text-text-primary/50 mb-8 max-w-md">Save your favorite products here and come back to them anytime.</p>
-          <Link href="/category/smartphones" className="btn-primary">Discover Products</Link>
+          <Link href="/category/all" className="btn-primary">Discover Products</Link>
         </div>
       </div>
     );

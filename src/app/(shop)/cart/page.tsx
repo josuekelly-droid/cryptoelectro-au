@@ -38,7 +38,7 @@ export default function CartPage() {
             Looks like you haven&apos;t added any products to your cart yet.
             Explore our premium electronics collection.
           </p>
-          <Link href="/category/smartphones" className="btn-primary">
+          <Link href="/category/all" className="btn-primary">
             Start Shopping
           </Link>
         </div>
