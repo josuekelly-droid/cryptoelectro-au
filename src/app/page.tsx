@@ -18,6 +18,7 @@ function HomeContent() {
   const searchParams = useSearchParams();
   const [categories, setCategories] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
+  const [totalProducts, setTotalProducts] = useState(0);
   const [brands, setBrands] = useState<any[]>([]);
   const [deals, setDeals] = useState<any[]>([]);
 
@@ -34,6 +35,7 @@ function HomeContent() {
     
     fetch("/api/categories").then(r => r.json()).then(d => setCategories(d.categories || []));
     fetch("/api/products?limit=8&featured=true").then(r => r.json()).then(d => setProducts(d.products || []));
+    fetch("/api/products?limit=1").then(r => r.json()).then(d => setTotalProducts(d.pagination?.total || 0));
     fetch("/api/brands").then(r => r.json()).then(d => setBrands(d.brands || []));
     fetch("/api/deals").then(r => r.json()).then(d => setDeals(d.deals || []));
   }, []);
@@ -58,7 +60,7 @@ function HomeContent() {
                 <Link href="/about" className="btn-secondary text-sm sm:text-base">Learn More</Link>
               </div>
               <div className="flex gap-6 sm:gap-8 pt-2">
-                <div><p className="text-xl sm:text-2xl font-heading font-bold text-accent">{products.length}+</p><p className="text-xs sm:text-sm text-text-primary/50">Products</p></div>
+                <div><p className="text-xl sm:text-2xl font-heading font-bold text-accent">{totalProducts}+</p><p className="text-xs sm:text-sm text-text-primary/50">Products</p></div>
                 <div><p className="text-xl sm:text-2xl font-heading font-bold text-accent">{brands.length}+</p><p className="text-xs sm:text-sm text-text-primary/50">Brands</p></div>
                 <div><p className="text-xl sm:text-2xl font-heading font-bold text-accent">24/7</p><p className="text-xs sm:text-sm text-text-primary/50">Support</p></div>
               </div>
