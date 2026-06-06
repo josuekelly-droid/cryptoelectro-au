@@ -260,6 +260,20 @@ export default function ProductForm({ product, isEditing = false }: ProductFormP
               step="0.01"
             />
           </div>
+          {/* 🆕 Stock Quantity */}
+          <div>
+            <label className="block text-sm font-medium text-text-primary/70 mb-2">
+              Stock Quantity
+            </label>
+            <input
+              type="number"
+              name="stockQuantity"
+              value={form.stockQuantity}
+              onChange={handleChange}
+              className="input-field"
+              min="0"
+            />
+          </div>
         </div>
 
         <div className="grid grid-cols-2 gap-4">

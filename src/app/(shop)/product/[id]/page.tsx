@@ -191,6 +191,27 @@ export default function ProductPage() {
               </>
             )}
           </div>
+                    {/* Stock Status */}
+          <div className="flex items-center gap-2">
+            {product.inStock && product.stockQuantity > 0 ? (
+              <>
+                <span className="w-2 h-2 rounded-full bg-success animate-pulse" />
+                <span className="text-sm text-success">
+                  In Stock — {product.stockQuantity} available
+                </span>
+              </>
+            ) : product.inStock ? (
+              <>
+                <span className="w-2 h-2 rounded-full bg-success" />
+                <span className="text-sm text-success">In Stock</span>
+              </>
+            ) : (
+              <>
+                <span className="w-2 h-2 rounded-full bg-error" />
+                <span className="text-sm text-error">Out of Stock</span>
+              </>
+            )}
+          </div>
           <p className="text-text-primary/60 leading-relaxed">{product.shortDescription || product.description}</p>
           {colors.length > 0 && (
             <div>
