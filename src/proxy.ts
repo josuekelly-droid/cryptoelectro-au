@@ -33,6 +33,35 @@ async function getUserFromToken(request: NextRequest): Promise<{ userId: string;
   }
 }
 
+// ============ LISTES DE RESTRICTIONS ============
+const MANAGER_RESTRICTED_PAGES = [
+  "/admin/settings",
+  "/admin/audit",
+  "/admin/customers",
+  "/admin/withdrawals",
+  "/admin/orders",
+  "/admin/coupons",
+  "/admin/banners",
+  "/admin/deals",
+  "/admin/reviews",
+  "/admin/careers",
+  "/admin/blog",
+];
+
+const MANAGER_RESTRICTED_API = [
+  "/api/admin/settings",
+  "/api/admin/audit",
+  "/api/admin/customers",
+  "/api/admin/withdrawals",
+  "/api/admin/orders",
+  "/api/admin/coupons",
+  "/api/admin/banners",
+  "/api/admin/deals",
+  "/api/admin/reviews",
+  "/api/admin/careers",
+  "/api/admin/blog",
+];
+
 // ============ PROXY ============
 export async function proxy(request: NextRequest) {
   const response = NextResponse.next();
@@ -81,8 +110,7 @@ export async function proxy(request: NextRequest) {
       return NextResponse.redirect(new URL("/dashboard", request.url));
     }
     if (user.role === "MANAGER") {
-      const restricted = ["/admin/settings", "/admin/audit", "/admin/customers", "/admin/withdrawals"];
-      if (restricted.some((path) => url.startsWith(path))) {
+      if (MANAGER_RESTRICTED_PAGES.some((path) => url.startsWith(path))) {
         return NextResponse.redirect(new URL("/admin", request.url));
       }
     }
@@ -108,8 +136,7 @@ export async function proxy(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     if (user.role === "MANAGER") {
-      const restricted = ["/api/admin/settings", "/api/admin/audit", "/api/admin/customers", "/api/admin/withdrawals"];
-      if (restricted.some((path) => url.startsWith(path))) {
+      if (MANAGER_RESTRICTED_API.some((path) => url.startsWith(path))) {
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
       }
     }
