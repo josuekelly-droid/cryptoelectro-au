@@ -120,17 +120,19 @@ export default function ProductForm({ product, isEditing = false }: ProductFormP
   }, []);
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
-  ) => {
-    const { name, value, type } = e.target;
-    setForm({
-      ...form,
-      [name]:
-        type === "checkbox"
-          ? (e.target as HTMLInputElement).checked
-          : value,
-    });
-  };
+  e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+) => {
+  const { name, value, type } = e.target;
+  setForm({
+    ...form,
+    [name]:
+      type === "checkbox"
+        ? (e.target as HTMLInputElement).checked
+        : type === "number"
+        ? Number(value)
+        : value,
+  });
+};
 
   const addSpec = () => setSpecs([...specs, { label: "", value: "" }]);
 
@@ -181,15 +183,14 @@ export default function ProductForm({ product, isEditing = false }: ProductFormP
         method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          ...form,
-          price: Number(form.price),
-          compareAtPrice: form.compareAtPrice
-            ? Number(form.compareAtPrice)
-            : null,
-          specs: specs.filter((s) => s.label && s.value),
-          colors: colors.filter((c) => c.name),
-          images: images.filter((i) => i),
-        }),
+  ...form,
+  price: Number(form.price),
+  compareAtPrice: form.compareAtPrice ? Number(form.compareAtPrice) : null,
+  stockQuantity: Number(form.stockQuantity) || 0,
+  specs: specs.filter((s) => s.label && s.value),
+  colors: colors.filter((c) => c.name),
+  images: images.filter((i) => i),
+}),
       });
 
       if (res.ok) {
