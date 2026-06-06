@@ -11,7 +11,7 @@ async function isAdmin(req: NextRequest): Promise<boolean> {
   if (!token) return false;
   try {
     const { payload } = await jwtVerify(token, JWT_SECRET);
-    return payload.role === "ADMIN";
+    return payload.role === "ADMIN" || payload.role === "MANAGER";
   } catch {
     return false;
   }

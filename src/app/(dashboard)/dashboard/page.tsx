@@ -202,10 +202,10 @@ export default function DashboardPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
         <div>
           <h1 className="text-3xl lg:text-4xl font-heading font-bold">Welcome back, {user.firstName} 👋</h1>
-          <p className="mt-1 text-text-primary/50">{user.email} · {user.role === "ADMIN" ? "Administrator" : "Customer"}</p>
+          <p className="mt-1 text-text-primary/50">{user.email} · {user.role === "ADMIN" ? "Administrator" : user.role === "MANAGER" ? "Manager" : "Customer"}</p>
         </div>
         <div className="flex gap-3">
-          {user.role === "ADMIN" && <Link href="/admin" className="btn-secondary text-sm">Admin Panel</Link>}
+          {(user.role === "ADMIN" || user.role === "MANAGER") && <Link href="/admin" className="btn-secondary text-sm">Admin Panel</Link>}
           <Link href="/category/all" className="btn-primary text-sm">Shop Now</Link>
         </div>
       </div>
