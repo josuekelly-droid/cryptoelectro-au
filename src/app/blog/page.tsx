@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Breadcrumb from "@/components/ui/Breadcrumb";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://cryptoelectro-au.vercel.app";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://cryptoelectro-au.store";
 const categories = ["All", "Crypto", "Tech", "Gaming", "Lifestyle"];
 
 export default function BlogPage() {

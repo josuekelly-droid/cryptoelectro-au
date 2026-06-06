@@ -17,7 +17,7 @@ export default function CareersPage() {
     const ogDesc = document.querySelector('meta[property="og:description"]');
     if (ogDesc) ogDesc.setAttribute("content", "Explore career opportunities at Cryptoelectro-au. Remote & hybrid jobs in Australia. Engineering, Marketing, Design, and more. Apply now.");
     const canonical = document.querySelector('link[rel="canonical"]');
-    if (canonical) canonical.setAttribute("href", "https://cryptoelectro-au.vercel.app/careers");
+    if (canonical) canonical.setAttribute("href", "https://cryptoelectro-au.store/careers");
 
     // Schema JSON-LD
     const schema = {
@@ -25,17 +25,17 @@ export default function CareersPage() {
       "@type": "CollectionPage",
       name: "Careers at Cryptoelectro-au",
       description: "Join Cryptoelectro-au and build the future of crypto e-commerce. Explore remote and hybrid job opportunities in Australia.",
-      url: "https://cryptoelectro-au.vercel.app/careers",
+      url: "https://cryptoelectro-au.store/careers",
       about: {
         "@type": "Organization",
         name: "Cryptoelectro-au",
-        url: "https://cryptoelectro-au.vercel.app",
+        url: "https://cryptoelectro-au.store",
         description: "Australia's premium electronics marketplace with cryptocurrency payments.",
         email: "cryptoelectroau@gmail.com",
         sameAs: [
           "https://twitter.com/cryptoelectroau",
           "https://facebook.com/cryptoelectroau",
-          "https://instagram.com/cryptoelectroau",
+          "https://instagram.com/cryptoelectro__au",
         ],
       },
     };

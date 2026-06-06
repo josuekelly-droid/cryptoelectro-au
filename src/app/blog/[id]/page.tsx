@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import Breadcrumb from "@/components/ui/Breadcrumb";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://cryptoelectro-au.vercel.app";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://cryptoelectro-au.store";
 
 export default function BlogPostPage() {
   const params = useParams();
