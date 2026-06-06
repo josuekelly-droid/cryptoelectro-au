@@ -34,6 +34,29 @@ async function addLoyaltyRewards(order: any) {
   }
 }
 
+async function decreaseStock(orderId: string) {
+  try {
+    const order = await prisma.order.findUnique({
+      where: { id: orderId },
+      include: { items: true },
+    });
+
+    if (!order) return;
+
+    for (const item of order.items) {
+      await prisma.product.update({
+        where: { id: item.productId },
+        data: {
+          stockQuantity: { decrement: item.quantity },
+        },
+      });
+      console.log(`📦 Stock decreased: product ${item.productId} by ${item.quantity}`);
+    }
+  } catch (error) {
+    console.error("Decrease stock error:", error);
+  }
+}
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
@@ -58,8 +81,8 @@ export async function POST(req: NextRequest) {
             status: "CONFIRMED",
           },
         });
-        // 🏆 Ajouter les points de fidélité après paiement confirmé
         await addLoyaltyRewards(order);
+        await decreaseStock(order.id); // ← 📦 Diminuer le stock
         console.log(`✅ Order ${order.orderNumber} confirmed via IPN`);
       } else {
         const orderByNumber = await prisma.order.findFirst({
@@ -75,8 +98,8 @@ export async function POST(req: NextRequest) {
               paymentId: String(payment_id),
             },
           });
-          // 🏆 Ajouter les points de fidélité après paiement confirmé
           await addLoyaltyRewards(orderByNumber);
+          await decreaseStock(orderByNumber.id); // ← 📦 Diminuer le stock
           console.log(`✅ Order ${order_id} confirmed via IPN`);
         }
       }
