@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { jwtVerify } from "jose";
+import { notifyGoogleIndexing } from "@/lib/indexing";
 
 const JWT_SECRET = new TextEncoder().encode(process.env.NEXTAUTH_SECRET || "cryptoelectro-au-secret-key-change-in-production");
 
@@ -34,5 +35,16 @@ export async function POST(req: NextRequest) {
       published: data.published || false,
     },
   });
+
+  notifyGoogleIndexing(`/blog/${post.slug}`)
+  .then((res) => {
+    if (!res.success) {
+      console.error("Indexing failed:", post.slug);
+    }
+  })
+  .catch((err) => {
+    console.error("Indexing error:", err);
+  });
+  
   return NextResponse.json({ post }, { status: 201 });
 }
