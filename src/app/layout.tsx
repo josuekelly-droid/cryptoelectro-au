@@ -117,7 +117,7 @@ const organizationSchema = {
   sameAs: [
     "https://twitter.com/cryptoelectroau",
     "https://www.facebook.com/share/1D58ZZsbhk/",
-    "https://instagram.com/cryptoelectroau",
+    "https://www.instagram.com/cryptoelectro__au",
   ],
   contactPoint: {
     "@type": "ContactPoint",
