@@ -11,67 +11,149 @@ function escapeXml(str: string): string {
     .replace(/'/g, "&apos;");
 }
 
+function url(
+  loc: string,
+  lastmod: string,
+  priority: string,
+  changefreq: string
+) {
+  return `
+<url>
+  <loc>${escapeXml(loc)}</loc>
+  <lastmod>${lastmod}</lastmod>
+  <changefreq>${changefreq}</changefreq>
+  <priority>${priority}</priority>
+</url>`;
+}
+
 export async function GET() {
-  let products: { slug: string; updatedAt: Date }[] = [];
-  let categories: { slug: string; updatedAt: Date }[] = [];
-  let blogPosts: { slug: string; updatedAt: Date }[] = [];
-  let careers: { slug: string; updatedAt: Date }[] = [];
+  const baseUrl = SITE_URL;
 
-  try { products = await prisma.product.findMany({ where: { isActive: true }, select: { slug: true, updatedAt: true } }); } catch {}
-  try { categories = await prisma.category.findMany({ where: { isActive: true }, select: { slug: true, updatedAt: true } }); } catch {}
-  try { blogPosts = await prisma.blogPost.findMany({ where: { published: true }, select: { slug: true, updatedAt: true } }); } catch {}
-  try { careers = await prisma.career.findMany({ where: { isActive: true }, select: { slug: true, updatedAt: true } }); } catch {}
+  const [products, categories, blogPosts, careers] = await Promise.all([
+    prisma.product.findMany({
+      where: { isActive: true },
+      select: { slug: true, updatedAt: true, isFeatured: true },
+    }),
+    prisma.category.findMany({
+      where: { isActive: true },
+      select: { slug: true, updatedAt: true },
+    }),
+    prisma.blogPost.findMany({
+      where: { published: true },
+      select: { slug: true, updatedAt: true },
+    }),
+    prisma.career.findMany({
+      where: { isActive: true },
+      select: { slug: true, updatedAt: true },
+    }),
+  ]);
 
-  const today = new Date().toISOString();
+  const now = new Date().toISOString();
 
+  /**
+   * STATIC PAGES (stable SEO signals)
+   */
   const staticPages = [
     { url: "/", priority: "1.0", changefreq: "daily" },
-    { url: "/about", priority: "0.7", changefreq: "monthly" },
-    { url: "/contact", priority: "0.7", changefreq: "monthly" },
-    { url: "/faq", priority: "0.6", changefreq: "monthly" },
+    { url: "/category/all", priority: "0.9", changefreq: "daily" },
     { url: "/blog", priority: "0.8", changefreq: "weekly" },
-    { url: "/affiliate-program", priority: "0.9", changefreq: "weekly" },
-    { url: "/referral-program", priority: "0.9", changefreq: "weekly" },
-    { url: "/careers", priority: "0.8", changefreq: "weekly" },
-    { url: "/category/all", priority: "0.8", changefreq: "weekly" },
-    { url: "/search", priority: "0.5", changefreq: "monthly" },
+    { url: "/careers", priority: "0.7", changefreq: "weekly" },
+    { url: "/contact", priority: "0.6", changefreq: "monthly" },
+    { url: "/faq", priority: "0.6", changefreq: "monthly" },
     { url: "/shipping", priority: "0.5", changefreq: "monthly" },
     { url: "/returns", priority: "0.5", changefreq: "monthly" },
-    { url: "/warranty", priority: "0.5", changefreq: "monthly" },
-    { url: "/privacy", priority: "0.3", changefreq: "yearly" },
     { url: "/terms", priority: "0.3", changefreq: "yearly" },
-    { url: "/cookies", priority: "0.3", changefreq: "yearly" },
-    { url: "/forgot-password", priority: "0.3", changefreq: "yearly" },
-    { url: "/login", priority: "0.5", changefreq: "yearly" },
-    { url: "/register", priority: "0.5", changefreq: "yearly" },
+    { url: "/privacy", priority: "0.3", changefreq: "yearly" },
+    { url: "/about", priority: "0.7", changefreq: "monthly" },
+    { url: "/affiliate-program", priority: "0.9", changefreq: "weekly" },
+    { url: "/referral-program", priority: "0.9", changefreq: "weekly" },
+    { url: "/search", priority: "0.5", changefreq: "monthly" },
+    { url: "/warranty", priority: "0.5", changefreq: "monthly" },
   ];
 
-  const urls = [
-    ...staticPages.map((p) =>
-      `<url><loc>${escapeXml(SITE_URL)}${escapeXml(p.url)}</loc><lastmod>${today}</lastmod><changefreq>${p.changefreq}</changefreq><priority>${p.priority}</priority></url>`
-    ),
-    ...categories.map((c) =>
-      `<url><loc>${escapeXml(SITE_URL)}/category/${escapeXml(c.slug)}</loc><lastmod>${new Date(c.updatedAt).toISOString()}</lastmod><changefreq>daily</changefreq><priority>0.9</priority></url>`
-    ),
-    ...products.map((p) =>
-      `<url><loc>${escapeXml(SITE_URL)}/product/${escapeXml(p.slug)}</loc><lastmod>${new Date(p.updatedAt).toISOString()}</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>`
-    ),
-    ...blogPosts.map((b) =>
-      `<url><loc>${escapeXml(SITE_URL)}/blog/${escapeXml(b.slug)}</loc><lastmod>${new Date(b.updatedAt).toISOString()}</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>`
-    ),
-    ...careers.map((c) =>
-      `<url><loc>${escapeXml(SITE_URL)}/careers/${escapeXml(c.slug)}</loc><lastmod>${new Date(c.updatedAt).toISOString()}</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>`
-    ),
-  ];
+  /**
+   * PRODUCTS (dynamic SEO scoring)
+   */
+  const productUrls = products.map((p) => {
+    const priority = p.isFeatured ? "1.0" : "0.8";
 
-  const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<!-- generated: ${new Date().toISOString()} -->\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.join("\n")}\n</urlset>`;
+    return url(
+      `${baseUrl}/product/${p.slug}`,
+      new Date(p.updatedAt).toISOString(),
+      priority,
+      "weekly"
+    );
+  });
+
+  /**
+   * CATEGORIES
+   */
+  const categoryUrls = categories.map((c) =>
+    url(
+      `${baseUrl}/category/${c.slug}`,
+      new Date(c.updatedAt).toISOString(),
+      "0.9",
+      "daily"
+    )
+  );
+
+  /**
+   * BLOG
+   */
+  const blogUrls = blogPosts.map((b) =>
+    url(
+      `${baseUrl}/blog/${b.slug}`,
+      new Date(b.updatedAt).toISOString(),
+      "0.7",
+      "weekly"
+    )
+  );
+
+  /**
+   * CAREERS
+   */
+  const careerUrls = careers.map((c) =>
+    url(
+      `${baseUrl}/careers/${c.slug}`,
+      new Date(c.updatedAt).toISOString(),
+      "0.7",
+      "weekly"
+    )
+  );
+
+  /**
+   * STATIC URLS
+   */
+  const staticUrls = staticPages.map((p) =>
+    url(
+      `${baseUrl}${p.url}`,
+      now,
+      p.priority,
+      p.changefreq
+    )
+  );
+
+  const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<!-- optimized sitemap generated: ${now} -->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${[
+  ...staticUrls,
+  ...categoryUrls,
+  ...productUrls,
+  ...blogUrls,
+  ...careerUrls,
+].join("\n")}
+</urlset>`;
 
   return new Response(xml, {
-    headers: { 
+    headers: {
       "Content-Type": "application/xml; charset=utf-8",
-      "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
-      "Pragma": "no-cache",
-      "Expires": "0",
+
+      /**
+       * IMPORTANT SEO OPTIMIZATION
+       * 1 hour cache = better crawl efficiency than no-store
+       */
+      "Cache-Control": "public, max-age=3600, s-maxage=3600",
     },
   });
 }
