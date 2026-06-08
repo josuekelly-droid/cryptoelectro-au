@@ -32,7 +32,7 @@ export default function ContactPage() {
       "@context": "https://schema.org",
       "@type": "ContactPage",
       name: "Contact Cryptoelectro-au",
-      url: "https://cryptoelectro.au/contact",
+      url: "https://cryptoelectro-au.store/contact",
       description: "Contact Cryptoelectro-au for support, inquiries, and crypto payment help.",
       mainEntity: {
         "@type": "Organization",

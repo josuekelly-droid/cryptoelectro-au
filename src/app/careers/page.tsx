@@ -34,7 +34,7 @@ export default function CareersPage() {
         email: "cryptoelectroau@gmail.com",
         sameAs: [
           "https://twitter.com/cryptoelectroau",
-          "https://facebook.com/cryptoelectroau",
+          "https://web.facebook.com/people/Cryptoelectro-AU/61590304272310/",
           "https://instagram.com/cryptoelectro__au",
         ],
       },
