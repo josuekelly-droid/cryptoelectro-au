@@ -84,7 +84,7 @@ export default function Footer() {
                 CryptoElectro
               </span>
               <span className="text-sm font-heading font-semibold text-accent">
-                AU
+                -AU
               </span>
             </Link>
             <p className="text-small text-text-primary/60 mb-6 leading-relaxed">
