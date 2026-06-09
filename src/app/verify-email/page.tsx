@@ -28,6 +28,10 @@ function VerifyEmailContent() {
         if (data.success) {
           setStatus("success");
           setMessage(data.message);
+          // 🔄 Rediriger vers login après 3 secondes
+          setTimeout(() => {
+            window.location.href = "/login";
+          }, 3000);
         } else {
           setStatus("error");
           setMessage(data.error);
@@ -59,7 +63,8 @@ function VerifyEmailContent() {
             </div>
             <h1 className="text-xl font-heading font-bold">Email Verified! 🎉</h1>
             <p className="text-text-primary/70">{message}</p>
-            <Link href="/login" className="btn-primary inline-block">Sign In</Link>
+            <p className="text-sm text-text-primary/40">Redirecting to login page...</p>
+            <Link href="/login" className="btn-primary inline-block">Sign In Now</Link>
           </>
         )}
 

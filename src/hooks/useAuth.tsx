@@ -77,8 +77,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
       const data = await res.json();
       if (res.ok) {
-        return await login(userData.email, userData.password);
-      }
+    return { success: true as const, message: "Account created. Please check your email to verify." };
+  }
       return { success: false as const, error: data.error as string };
     } catch {
       return { success: false as const, error: "Network error" };
