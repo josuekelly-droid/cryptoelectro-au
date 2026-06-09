@@ -47,7 +47,7 @@ export default function LoginPage() {
               CryptoElectro
             </span>
             <span className="text-base font-heading font-semibold text-accent">
-              AU
+              -AU
             </span>
           </Link>
           <h1 className="text-2xl lg:text-3xl font-heading font-bold">

@@ -84,7 +84,7 @@ function RegisterPageContent() {
         <div className="text-center mb-8">
           <Link href="/" className="inline-block mb-6">
             <span className="text-2xl font-heading font-bold text-gradient">CryptoElectro</span>
-            <span className="text-base font-heading font-semibold text-accent">AU</span>
+            <span className="text-base font-heading font-semibold text-accent">-AU</span>
           </Link>
           <h1 className="text-2xl lg:text-3xl font-heading font-bold">Create Account</h1>
           <p className="mt-2 text-text-primary/50">Join the premium electronics marketplace</p>
