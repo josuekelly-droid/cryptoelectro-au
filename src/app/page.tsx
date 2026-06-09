@@ -34,7 +34,7 @@ function HomeContent() {
     if (metaDesc) metaDesc.setAttribute("content", "Australia's premium electronics marketplace. Buy smartphones, laptops, cameras, and home appliances with Bitcoin, Ethereum, USDT, TRX, and 100+ cryptocurrencies. Fast shipping Australia-wide.");
     
     fetch("/api/categories").then(r => r.json()).then(d => setCategories(d.categories || []));
-    fetch("/api/products?limit=8&featured=true").then(r => r.json()).then(d => setProducts(d.products || []));
+    fetch("/api/products?limit=16&featured=true").then(r => r.json()).then(d => setProducts(d.products || []));
     fetch("/api/products?limit=1").then(r => r.json()).then(d => setTotalProducts(d.pagination?.total || 0));
     fetch("/api/brands").then(r => r.json()).then(d => setBrands(d.brands || []));
     fetch("/api/deals").then(r => r.json()).then(d => setDeals(d.deals || []));
@@ -97,7 +97,7 @@ function HomeContent() {
             <Link href="/category/all" className="btn-outline text-sm whitespace-nowrap">View All Products</Link>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-            {products.slice(0, 8).map((product: any, index: number) => (<ProductCard key={product.id} product={product} index={index} />))}
+            {products.slice(0, 16).map((product: any, index: number) => (<ProductCard key={product.id} product={product} index={index} />))}
           </div>
         </div>
       </section>
@@ -159,7 +159,7 @@ function HomeContent() {
               <h2 className="text-2xl sm:text-3xl lg:text-4xl font-heading font-bold">Ready to Pay with <span className="text-gradient">Crypto?</span></h2>
               <p className="text-sm sm:text-base text-text-primary/60">Experience the future of shopping. Secure, fast, and borderless payments with Bitcoin, Ethereum, USDT, and 100+ cryptocurrencies.</p>
               <div className="flex flex-wrap justify-center gap-2 sm:gap-3 pt-2"><span className="badge badge-accent text-xs sm:text-sm">₿ Bitcoin</span><span className="badge badge-accent text-xs sm:text-sm">Ξ Ethereum</span><span className="badge badge-accent text-xs sm:text-sm">₮ USDT</span><span className="badge badge-accent text-xs sm:text-sm">+100 More</span></div>
-              <div className="pt-4"><Link href="/category/smartphones" className="btn-primary">Start Shopping</Link></div>
+              <div className="pt-4"><Link href="/category/all" className="btn-primary">Start Shopping</Link></div>
             </div>
           </div>
         </div>
