@@ -44,10 +44,10 @@ export default function LoginPage() {
         <div className="text-center mb-8">
           <Link href="/" className="inline-block mb-6">
             <span className="text-2xl font-heading font-bold text-gradient">
-              Cryptoelectro
+              CryptoElectro
             </span>
             <span className="text-base font-heading font-semibold text-accent">
-              .au
+              AU
             </span>
           </Link>
           <h1 className="text-2xl lg:text-3xl font-heading font-bold">

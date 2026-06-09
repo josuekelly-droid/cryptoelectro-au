@@ -81,10 +81,10 @@ export default function Footer() {
           <div className="col-span-2 lg:col-span-1">
             <Link href="/" className="inline-block mb-4">
               <span className="text-xl font-heading font-bold text-gradient">
-                Cryptoelectro
+                CryptoElectro
               </span>
               <span className="text-sm font-heading font-semibold text-accent">
-                .au
+                AU
               </span>
             </Link>
             <p className="text-small text-text-primary/60 mb-6 leading-relaxed">

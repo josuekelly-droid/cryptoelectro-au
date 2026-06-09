@@ -47,10 +47,10 @@ export default function Header() {
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 flex-shrink-0">
             <span className="text-xl lg:text-2xl font-heading font-bold text-gradient">
-              Cryptoelectro
+              CryptoElectro
             </span>
             <span className="hidden sm:inline text-sm font-heading font-semibold text-accent">
-              .au
+              AU
             </span>
           </Link>
 

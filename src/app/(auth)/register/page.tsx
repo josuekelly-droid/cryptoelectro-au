@@ -83,8 +83,8 @@ function RegisterPageContent() {
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} className="w-full max-w-md">
         <div className="text-center mb-8">
           <Link href="/" className="inline-block mb-6">
-            <span className="text-2xl font-heading font-bold text-gradient">Cryptoelectro</span>
-            <span className="text-base font-heading font-semibold text-accent">.au</span>
+            <span className="text-2xl font-heading font-bold text-gradient">CryptoElectro</span>
+            <span className="text-base font-heading font-semibold text-accent">AU</span>
           </Link>
           <h1 className="text-2xl lg:text-3xl font-heading font-bold">Create Account</h1>
           <p className="mt-2 text-text-primary/50">Join the premium electronics marketplace</p>
