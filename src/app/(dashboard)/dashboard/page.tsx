@@ -199,6 +199,30 @@ export default function DashboardPage() {
 
       <ExpiredOrderMessage />
 
+      {user && !user.emailVerified && (
+  <div className="bg-warning/10 border border-warning/30 rounded-lg p-4 mb-6">
+    <div className="flex items-center gap-3">
+      <span className="text-2xl">📧</span>
+      <div className="flex-1">
+        <p className="text-warning font-heading font-semibold">Email not verified</p>
+        <p className="text-sm text-text-primary/70">
+          Please verify your email to access all features.
+        </p>
+      </div>
+      <button
+        onClick={async () => {
+          const res = await fetch("/api/auth/resend-verification", { method: "POST" });
+          const data = await res.json();
+          alert(data.message || data.error);
+        }}
+        className="btn-secondary text-sm whitespace-nowrap"
+      >
+        Resend Email
+      </button>
+    </div>
+  </div>
+)}
+
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
         <div>
           <h1 className="text-3xl lg:text-4xl font-heading font-bold">Welcome back, {user.firstName} 👋</h1>

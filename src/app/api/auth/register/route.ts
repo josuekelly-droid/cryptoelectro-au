@@ -4,12 +4,13 @@ import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import { registerSchema } from "@/lib/validations";
 import { logRegister } from "@/lib/audit";
+import { sendVerificationEmail } from "@/lib/email";
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
 
-    // Validation avec Zod
+    
     const parsed = registerSchema.safeParse(body);
 
     if (!parsed.success) {
@@ -22,7 +23,7 @@ export async function POST(req: NextRequest) {
     const { firstName, lastName, email, password } = parsed.data;
     const referralCode = body.referralCode;
 
-    // Check if user exists
+    
     const existingUser = await prisma.user.findUnique({
       where: { email },
     });
@@ -43,13 +44,17 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Hash password
+    
     const hashedPassword = await bcrypt.hash(password, 12);
 
-    // Générer le code de parrainage
+    
     const generatedReferralCode = `${firstName.toUpperCase().substring(0, 4)}-${crypto.randomBytes(3).toString("hex").toUpperCase()}`;
 
-    // Create user
+    
+    const emailVerifyToken = crypto.randomBytes(32).toString("hex");
+    const emailVerifyExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 heures
+
+    
     const user = await prisma.user.create({
       data: {
         firstName,
@@ -58,8 +63,19 @@ export async function POST(req: NextRequest) {
         password: hashedPassword,
         referralCode: generatedReferralCode,
         referredBy: referredBy || null,
+        emailVerifyToken,
+        emailVerifyExpiry,
+        emailVerified: false,
       },
     });
+
+    // 📧 Envoyer l'email de vérification
+    if (user.email) {
+      sendVerificationEmail(user.email, {
+        firstName: user.firstName,
+        token: emailVerifyToken,
+      }).catch((err) => console.error("Verification email error:", err));
+    }
 
     // Log registration
     const ip = req.headers.get("x-forwarded-for") || "unknown";
@@ -70,7 +86,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(
       {
-        message: "Account created successfully",
+        message: "Account created successfully. Please check your email to verify your account.",
         user: userWithoutPassword,
       },
       { status: 201 }

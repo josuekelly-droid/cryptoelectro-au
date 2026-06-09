@@ -9,6 +9,7 @@ interface User {
   email: string;
   role: "CUSTOMER" | "ADMIN" | "MANAGER";
   image?: string | null;
+  emailVerified?: boolean;
 }
 
 interface AuthContextType {

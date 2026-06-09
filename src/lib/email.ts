@@ -104,6 +104,47 @@ export async function sendOrderConfirmationEmail(
   });
 }
 
+// ============ EMAIL VERIFICATION ============
+export async function sendVerificationEmail(
+  to: string,
+  data: {
+    firstName: string;
+    token: string;
+  }
+) {
+  const verificationUrl = `${SITE_URL}/verify-email?token=${data.token}`;
+
+  await transporter.sendMail({
+    from: `"Cryptoelectro-au" <${process.env.GMAIL_USER}>`,
+    to,
+    subject: "Verify your email - Cryptoelectro-au",
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background: #0A0A0A;">
+        <div style="background: #007BFF; padding: 20px; border-radius: 8px 8px 0 0;">
+          <h1 style="color: white; margin: 0; font-size: 24px;">Cryptoelectro-au</h1>
+          <p style="color: rgba(255,255,255,0.8); margin: 5px 0 0;">Verify Your Email</p>
+        </div>
+        
+        <div style="background: #1a1a1a; padding: 20px; border-radius: 0 0 8px 8px; color: #F0F0F0;">
+          <h2 style="margin-top: 0;">Welcome, ${data.firstName}! 🎉</h2>
+          <p>Thanks for creating an account. Please verify your email address by clicking the button below:</p>
+          
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${verificationUrl}" style="background: #007BFF; color: white; padding: 14px 32px; border-radius: 6px; text-decoration: none; font-weight: bold; display: inline-block;">Verify My Email</a>
+          </div>
+          
+          <p style="font-size: 12px; color: #999;">This link expires in 24 hours.</p>
+          <p style="font-size: 12px; color: #999;">If you didn't create an account, please ignore this email.</p>
+        </div>
+        
+        <p style="text-align: center; color: #666; font-size: 12px; margin-top: 20px;">
+          Cryptoelectro-au — Australia's Premium Electronics Marketplace
+        </p>
+      </div>
+    `,
+  });
+}
+
 // ============ WITHDRAWAL CONFIRMATION ============
 export async function sendWithdrawalConfirmationEmail(
   to: string,
