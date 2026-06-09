@@ -55,6 +55,13 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    if (!user.emailVerified) {
+      return NextResponse.json(
+        { error: "Please verify your email before logging in. Check your inbox or spam folder." },
+        { status: 403 }
+      );
+    }
+
     // Verify password
     const isValid = await bcrypt.compare(password, user.password);
 
