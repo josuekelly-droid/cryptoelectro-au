@@ -139,7 +139,7 @@ export default function Footer() {
             {/* Accepted Crypto Badges */}
             <div className="flex items-center gap-2">
               <span className="text-xs text-text-primary/40">We accept:</span>
-              <span className="badge badge-accent text-xs">Credit Cards</span>
+              <span className="badge badge-accent text-xs">Cards</span>
               <span className="badge badge-accent text-xs">BTC</span>
               <span className="badge badge-accent text-xs">ETH</span>
               <span className="badge badge-accent text-xs">USDT</span>
