@@ -84,7 +84,7 @@ function HomeContent() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-8 sm:mb-12"><h2 className="text-2xl sm:text-3xl lg:text-4xl font-heading font-bold">Shop by <span className="text-gradient">Category</span></h2><p className="mt-3 sm:mt-4 text-sm sm:text-base text-text-primary/50 max-w-lg mx-auto px-4">Explore our curated selection of premium electronics across multiple categories</p></div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 auto-rows-fr">
-            {categories.slice(0, 5).map((cat, index) => (<CategoryCard key={cat.id} category={cat} index={index} />))}
+            {categories.slice(0, 6).map((cat, index) => (<CategoryCard key={cat.id} category={cat} index={index} />))}
           </div>
         </div>
       </section>
