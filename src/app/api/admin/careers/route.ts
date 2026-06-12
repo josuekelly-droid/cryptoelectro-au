@@ -8,7 +8,7 @@ const JWT_SECRET = new TextEncoder().encode(process.env.NEXTAUTH_SECRET || "cryp
 async function isAdmin(req: NextRequest): Promise<boolean> {
   const token = req.cookies.get("auth-token")?.value;
   if (!token) return false;
-  try { const { payload } = await jwtVerify(token, JWT_SECRET); return payload.role === "ADMIN"; }
+  try { const { payload } = await jwtVerify(token, JWT_SECRET); return payload.role === "ADMIN" || payload.role === "MANAGER"; }
   catch { return false; }
 }
 
