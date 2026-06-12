@@ -242,6 +242,7 @@ const mainImage =
             <div className="pt-4 border-t border-secondary-light">
               <p className="text-xs text-text-primary/40 mb-2">We Accept</p>
               <div className="flex flex-wrap gap-2">
+                <span className="badge badge-accent text-xs">Credit cards</span>
                 <span className="badge badge-accent text-xs">₿ BTC</span>
                 <span className="badge badge-accent text-xs">Ξ ETH</span>
                 <span className="badge badge-accent text-xs">₮ USDT</span>

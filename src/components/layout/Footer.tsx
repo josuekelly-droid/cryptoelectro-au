@@ -88,7 +88,7 @@ export default function Footer() {
               </span>
             </Link>
             <p className="text-small text-text-primary/60 mb-6 leading-relaxed">
-              Australia&apos;s premium electronics marketplace. Crypto payments
+              Australia&apos;s premium electronics marketplace. Crypto payments and credit cards
               accepted.
             </p>
             {/* Social Links */}
@@ -138,6 +138,7 @@ export default function Footer() {
             {/* Accepted Crypto Badges */}
             <div className="flex items-center gap-2">
               <span className="text-xs text-text-primary/40">We accept:</span>
+              <span className="badge badge-accent text-xs">Credit Cards</span>
               <span className="badge badge-accent text-xs">BTC</span>
               <span className="badge badge-accent text-xs">ETH</span>
               <span className="badge badge-accent text-xs">USDT</span>

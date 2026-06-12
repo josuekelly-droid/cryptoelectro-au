@@ -35,7 +35,7 @@ const firaCode = Fira_Code({
 const SITE_URL = process.env.NEXTAUTH_URL || "https://cryptoelectro-au.store";
 const SITE_NAME = "Cryptoelectro-au";
 const SITE_DESCRIPTION =
-  "Australia's premium electronics marketplace with cryptocurrency payments. Shop smartphones, laptops, cameras, gaming consoles, and home appliances with Bitcoin, Ethereum, USDT, and 100+ cryptocurrencies.";
+  "Australia's premium electronics marketplace with cryptocurrency and credit cards payments. Shop smartphones, laptops, cameras, gaming consoles, and home appliances with Bitcoin, Ethereum, USDT, Credit Cards and 100+ cryptocurrencies.";
 const SITE_KEYWORDS = [
   "electronics",
   "Australia",

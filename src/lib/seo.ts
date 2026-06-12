@@ -35,7 +35,7 @@ export function generateOrganizationSchema() {
     "@type": "Organization",
     name: "Cryptoelectro-au",
     url: process.env.NEXTAUTH_URL,
-    description: "Australia's premium electronics marketplace with cryptocurrency payments.",
-    sameAs: ["https://twitter.com/cryptoelectro-au", "https://www.facebook.com/share/1D58ZZsbhk/"],
+    description: "Australia's premium electronics marketplace with cryptocurrency and Credit cards payments.",
+    sameAs: ["https://twitter.com/cryptoelectro-au", "https://www.instagram.com/cryptoelectro__au", "https://www.facebook.com/share/1D58ZZsbhk/"],
   };
 }

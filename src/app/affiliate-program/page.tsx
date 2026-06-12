@@ -239,7 +239,7 @@ const organizationSchema = {
   "@type": "Organization",
   "name": "Cryptoelectro-au",
   "url": "https://cryptoelectro-au.store",
-  "description": "Australia's premium electronics marketplace. Buy smartphones, laptops, and gadgets with cryptocurrency.",
+  "description": "Australia's premium electronics marketplace. Buy smartphones, laptops, and gadgets with cryptocurrency and credit cards.",
   "sameAs": [
     "https://cryptoelectro-au.store",
   ],

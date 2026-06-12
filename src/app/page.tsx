@@ -29,9 +29,9 @@ function HomeContent() {
 
   useEffect(() => {
     // SEO Homepage
-    document.title = "Cryptoelectro-au | Premium Electronics Marketplace – Pay with Crypto";
+    document.title = "Cryptoelectro-au | Premium Electronics Marketplace – Pay with Crypto or Credit cards";
     const metaDesc = document.querySelector('meta[name="description"]');
-    if (metaDesc) metaDesc.setAttribute("content", "Australia's premium electronics marketplace. Buy smartphones, laptops, cameras, and home appliances with Bitcoin, Ethereum, USDT, TRX, and 100+ cryptocurrencies. Fast shipping Australia-wide.");
+    if (metaDesc) metaDesc.setAttribute("content", "Australia's premium electronics marketplace. Buy smartphones, laptops, cameras, and home appliances with Credit cards, Bitcoin, Ethereum, USDT, TRX, and 100+ cryptocurrencies. Fast shipping Australia-wide.");
     
     fetch("/api/categories").then(r => r.json()).then(d => setCategories(d.categories || []));
     fetch("/api/products?limit=16&featured=true").then(r => r.json()).then(d => setProducts(d.products || []));
@@ -51,12 +51,12 @@ function HomeContent() {
             <div className="space-y-6">
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-accent/10 border border-accent/20">
                 <span className="w-2 h-2 rounded-full bg-accent animate-pulse" />
-                <span className="text-xs font-body text-accent">Crypto Payments Now Accepted</span>
+                <span className="text-xs font-body text-accent">Crypto and Credit card Payments Now Accepted</span>
               </div>
               <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-heading font-bold leading-tight">Premium Electronics <span className="text-gradient">for the Modern Age</span></h1>
-              <p className="text-base sm:text-lg text-text-primary/60 max-w-lg">Australia&apos;s premier marketplace for high-end electronics. Shop smartphones, cameras, computers, and more. Pay with Bitcoin, Ethereum, USDT, and other cryptocurrencies.</p>
+              <p className="text-base sm:text-lg text-text-primary/60 max-w-lg">Australia&apos;s premier marketplace for high-end electronics. Shop smartphones, cameras, computers, and more. Pay with Credit cards, Bitcoin, Ethereum, USDT, and other cryptocurrencies.</p>
               <div className="flex flex-wrap gap-3 sm:gap-4">
-                <Link href="/category/smartphones" className="btn-primary text-sm sm:text-base">Shop Now</Link>
+                <Link href="/category/all" className="btn-primary text-sm sm:text-base">Shop Now</Link>
                 <Link href="/about" className="btn-secondary text-sm sm:text-base">Learn More</Link>
               </div>
               <div className="flex gap-6 sm:gap-8 pt-2">
@@ -158,8 +158,8 @@ function HomeContent() {
             <div className="absolute -top-24 -right-24 w-48 h-48 bg-accent/20 rounded-full blur-3xl" />
             <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-accent/10 rounded-full blur-3xl" />
             <div className="relative z-10 max-w-2xl mx-auto space-y-4 sm:space-y-6">
-              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-heading font-bold">Ready to Pay with <span className="text-gradient">Crypto?</span></h2>
-              <p className="text-sm sm:text-base text-text-primary/60">Experience the future of shopping. Secure, fast, and borderless payments with Bitcoin, Ethereum, USDT, and 100+ cryptocurrencies.</p>
+              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-heading font-bold">Ready to Pay with <span className="text-gradient">Crypto or Credit Cards ?</span></h2>
+              <p className="text-sm sm:text-base text-text-primary/60">Experience the future of shopping. Secure, fast, and borderless payments with Credit Cards, Bitcoin, Ethereum, USDT, and 100+ cryptocurrencies.</p>
               <div className="flex flex-wrap justify-center gap-2 sm:gap-3 pt-2"><span className="badge badge-accent text-xs sm:text-sm">₿ Bitcoin</span><span className="badge badge-accent text-xs sm:text-sm">Ξ Ethereum</span><span className="badge badge-accent text-xs sm:text-sm">₮ USDT</span><span className="badge badge-accent text-xs sm:text-sm">+100 More</span></div>
               <div className="pt-4"><Link href="/category/all" className="btn-primary">Start Shopping</Link></div>
             </div>

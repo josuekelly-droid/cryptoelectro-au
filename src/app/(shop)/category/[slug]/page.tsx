@@ -40,7 +40,7 @@ export default function CategoryPage() {
           if (metaDesc) {
             metaDesc.setAttribute(
               "content",
-              cat.description || `Shop ${cat.name} with cryptocurrency. Premium electronics, fast shipping Australia-wide.`
+              cat.description || `Shop ${cat.name} with credit card & cryptocurrency. Premium electronics, fast shipping Australia-wide.`
             );
           }
           const ogTitle = document.querySelector('meta[property="og:title"]');

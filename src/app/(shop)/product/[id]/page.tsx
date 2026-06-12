@@ -39,7 +39,7 @@ export default function ProductPage() {
           document.title = `${found.name} - Buy with Crypto | Cryptoelectro-au`;
           const metaDesc = document.querySelector('meta[name="description"]');
           if (metaDesc) {
-            metaDesc.setAttribute("content", found.shortDescription || found.description?.substring(0, 160) || `Buy ${found.name} with cryptocurrency. Fast shipping Australia-wide.`);
+            metaDesc.setAttribute("content", found.shortDescription || found.description?.substring(0, 160) || `Buy ${found.name} with credit cards and cryptocurrency. Fast shipping Australia-wide.`);
           }
           const ogTitle = document.querySelector('meta[property="og:title"]');
           if (ogTitle) ogTitle.setAttribute("content", `${found.name} - Cryptoelectro-au`);

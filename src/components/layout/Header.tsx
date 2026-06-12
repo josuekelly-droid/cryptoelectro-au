@@ -50,7 +50,7 @@ export default function Header() {
               CryptoElectro
             </span>
             <span className="hidden sm:inline text-sm font-heading font-semibold text-accent">
-              AU
+            -AU
             </span>
           </Link>
 

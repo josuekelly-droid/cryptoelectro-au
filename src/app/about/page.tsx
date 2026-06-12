@@ -18,7 +18,7 @@ const values = [
     icon: "⚡",
     title: "Innovation",
     description:
-      "We embrace the future of commerce by integrating cryptocurrency payments with premium electronics shopping.",
+      "We embrace the future of commerce by integrating cryptocurrency and credit cards payments with premium electronics shopping.",
   },
   {
     icon: "💎",
@@ -54,7 +54,7 @@ export default function AboutPage() {
         </h1>
         <p className="mt-6 text-lg text-text-primary/60 max-w-2xl mx-auto leading-relaxed">
           Australia&apos;s premier destination for high-end electronics. We
-          combine premium products with innovative cryptocurrency payments to
+          combine premium products with innovative cryptocurrency and credit card payments to
           deliver a shopping experience like no other.
         </p>
       </div>
@@ -105,7 +105,7 @@ export default function AboutPage() {
             To bridge the gap between premium electronics and modern payment
             methods. We believe that Australian consumers deserve access to the
             best technology products with the freedom to pay how they want —
-            including with cryptocurrency.
+            including with cryptocurrency and credit cards.
           </p>
         </div>
       </div>
@@ -113,10 +113,10 @@ export default function AboutPage() {
       {/* CTA */}
       <div className="text-center">
         <h2 className="text-2xl lg:text-3xl font-heading font-bold mb-4">
-          Ready to Experience the Future?
+          Ready to Experience the Future ?
         </h2>
         <p className="text-text-primary/50 mb-6">
-          Browse our premium collection and pay with your favorite cryptocurrency.
+          Browse our premium collection and pay with your favorite cryptocurrency or credit cards.
         </p>
         <Link href="/category/all" className="btn-primary">
           Start Shopping
