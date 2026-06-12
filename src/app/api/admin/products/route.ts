@@ -41,8 +41,6 @@ export async function GET(req: NextRequest) {
 
 // POST - Créer un produit
 export async function POST(req: NextRequest) {
-  console.log("🚀 POST /api/admin/products - START");
-
   if (!(await isAdmin(req))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   }
@@ -88,24 +86,20 @@ export async function POST(req: NextRequest) {
     },
   });
 
-  console.log("✅ Product created:", product.slug);
-
   console.log("🔍 ENV CHECK:", {
-    hasClientEmail: !!process.env.GOOGLE_INDEXING_CLIENT_EMAIL,
-    hasPrivateKey: !!process.env.GOOGLE_INDEXING_PRIVATE_KEY,
-  });
+  hasClientEmail: !!process.env.GOOGLE_INDEXING_CLIENT_EMAIL,
+  hasPrivateKey: !!process.env.GOOGLE_INDEXING_PRIVATE_KEY,
+});
 
   notifyGoogleIndexing(`/product/${product.slug}`)
-    .then((res) => {
-      if (res.success) {
-        console.log("📢 Indexing OK:", product.slug);
-      } else {
-        console.error("❌ Indexing failed:", product.slug, res.error?.message || "");
-      }
-    })
-    .catch((err) => {
-      console.error("❌ Indexing error:", err?.message || err);
-    });
+  .then((res) => {
+    if (!res.success) {
+      console.error("Indexing failed:", product.slug);
+    }
+  })
+  .catch((err) => {
+    console.error("Indexing error:", err);
+  });
 
   return NextResponse.json({ product }, { status: 201 });
 }

@@ -13,6 +13,11 @@ const auth = new google.auth.GoogleAuth({
   scopes: ["https://www.googleapis.com/auth/indexing"],
 });
 
+console.log("🔑 Indexing auth check:", {
+  hasEmail: !!process.env.GOOGLE_INDEXING_CLIENT_EMAIL,
+  keyLength: process.env.GOOGLE_INDEXING_PRIVATE_KEY?.length || 0,
+});
+
 /**
  * Singleton client (important pour éviter recréation inutile)
  */
