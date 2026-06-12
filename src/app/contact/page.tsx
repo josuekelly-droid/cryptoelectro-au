@@ -19,11 +19,11 @@ export default function ContactPage() {
   useEffect(() => {
     document.title = "Contact Us - Cryptoelectro-au | Premium Electronics Marketplace";
     const metaDesc = document.querySelector('meta[name="description"]');
-    if (metaDesc) metaDesc.setAttribute("content", "Contact Cryptoelectro-au for support, inquiries, and crypto payment help. Reach our team in Sydney, Australia by email, phone, or contact form.");
+    if (metaDesc) metaDesc.setAttribute("content", "Contact Cryptoelectro-au for support, inquiries, and crypto and credit cards payment help. Reach our team in Sydney, Australia by email, phone, or contact form.");
     const ogTitle = document.querySelector('meta[property="og:title"]');
     if (ogTitle) ogTitle.setAttribute("content", "Contact Us - Cryptoelectro-au");
     const ogDesc = document.querySelector('meta[property="og:description"]');
-    if (ogDesc) ogDesc.setAttribute("content", "Get in touch with Cryptoelectro-au. Support for orders, crypto payments, shipping, and more.");
+    if (ogDesc) ogDesc.setAttribute("content", "Get in touch with Cryptoelectro-au. Support for orders, crypto and credit cards payments, shipping, and more.");
   }, []);
 
   // Schema JSON-LD Contact
@@ -33,7 +33,7 @@ export default function ContactPage() {
       "@type": "ContactPage",
       name: "Contact Cryptoelectro-au",
       url: "https://cryptoelectro-au.store/contact",
-      description: "Contact Cryptoelectro-au for support, inquiries, and crypto payment help.",
+      description: "Contact Cryptoelectro-au for support, inquiries, and crypto and credit cards payment help.",
       mainEntity: {
         "@type": "Organization",
         name: "Cryptoelectro-au",
@@ -205,7 +205,7 @@ export default function ContactPage() {
                   <option value="">Select a topic</option>
                   <option value="order">Order Inquiry</option>
                   <option value="product">Product Question</option>
-                  <option value="crypto">Crypto Payment Help</option>
+                  <option value="crypto">Crypto Payment or credit cards Help</option>
                   <option value="shipping">Shipping & Delivery</option>
                   <option value="returns">Returns & Warranty</option>
                   <option value="other">Other</option>

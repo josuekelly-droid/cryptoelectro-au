@@ -29,7 +29,7 @@ export default function CareerDetailPage() {
           const ogDesc = document.querySelector('meta[property="og:description"]');
           if (ogDesc) ogDesc.setAttribute("content", `Apply for ${found.title} at Cryptoelectro-au. ${found.department} · ${found.location}. Join our team today.`);
           const canonical = document.querySelector('link[rel="canonical"]');
-          if (canonical) canonical.setAttribute("href", `https://cryptoelectro-au.store/careers/${found.id}`);
+          if (canonical) canonical.setAttribute("href", `https://cryptoelectro-au.store/careers/${found.id || found.id}`);
 
           // Schema JSON-LD JobPosting
           const schema = {

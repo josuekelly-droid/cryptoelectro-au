@@ -30,7 +30,7 @@ export default function CareersPage() {
         "@type": "Organization",
         name: "Cryptoelectro-au",
         url: "https://cryptoelectro-au.store",
-        description: "Australia's premium electronics marketplace with cryptocurrency payments.",
+        description: "Australia's premium electronics marketplace with credit cards and cryptocurrency payments.",
         email: "cryptoelectroau@gmail.com",
         sameAs: [
           "https://twitter.com/cryptoelectroau",
@@ -91,7 +91,7 @@ export default function CareersPage() {
               {job.salary && <span className="badge badge-accent text-sm">{job.salary}</span>}
             </div>
             <p className="text-sm text-text-primary/60 line-clamp-3 mb-4">{job.description}</p>
-            <Link href={`/careers/${job.id}`} className="text-sm text-accent hover:underline">View Details →</Link>
+            <Link href={`/careers/${job.slug || job.id}`} className="text-sm text-accent hover:underline">View Details →</Link>
           </div>
         ))}
         {careers.length === 0 && (
