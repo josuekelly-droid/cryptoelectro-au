@@ -12,6 +12,7 @@ interface Order {
   paymentStatus: string;
   paymentMethod: string;
   createdAt: string;
+  items: { quantity: number; product: { name: string } }[];
   address: { firstName: string; lastName: string; phone: string; address: string; city: string; state: string; postcode: string; country: string } | null;
 }
 
@@ -100,7 +101,7 @@ export default function AdminOrdersPage() {
                   {expandedOrder === order.id && order.address && (
                     <tr key={`${order.id}-details`} className="bg-secondary-dark/30">
                       <td colSpan={5} className="px-3 sm:px-6 py-4">
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
+                        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 text-sm">
                           <div>
                             <p className="font-medium text-text-primary mb-2">📦 Shipping Address</p>
                             <p className="text-text-primary/60">{order.address.firstName} {order.address.lastName}</p>
@@ -108,6 +109,14 @@ export default function AdminOrdersPage() {
                             <p className="text-text-primary/60">{order.address.city}, {order.address.state} {order.address.postcode}</p>
                             <p className="text-text-primary/60">{order.address.country}</p>
                           </div>
+                          <div>
+  <p className="font-medium text-text-primary mb-2">🛒 Products</p>
+  {order.items?.map((item, i) => (
+    <p key={i} className="text-text-primary/60">
+      {item.quantity}× {item.product.name}
+    </p>
+  ))}
+</div>
                           <div>
                             <p className="font-medium text-text-primary mb-2">📞 Contact</p>
                             <p className="text-text-primary/60">{order.user.email}</p>
