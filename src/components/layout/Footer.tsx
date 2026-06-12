@@ -9,6 +9,7 @@ const footerLinks = {
       { name: "Home Appliances", href: "/category/home-appliances" },
       { name: "Computers", href: "/category/computers" },
       { name: "Gaming Consoles", href: "/category/gaming-consoles" },
+      { name: "Accessories", href: "/category/accessories" },
     ],
   },
   company: {

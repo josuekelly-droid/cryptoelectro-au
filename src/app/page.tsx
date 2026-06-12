@@ -160,7 +160,7 @@ function HomeContent() {
             <div className="relative z-10 max-w-2xl mx-auto space-y-4 sm:space-y-6">
               <h2 className="text-2xl sm:text-3xl lg:text-4xl font-heading font-bold">Ready to Pay with <span className="text-gradient">Crypto or Credit Cards ?</span></h2>
               <p className="text-sm sm:text-base text-text-primary/60">Experience the future of shopping. Secure, fast, and borderless payments with Credit Cards, Bitcoin, Ethereum, USDT, and 100+ cryptocurrencies.</p>
-              <div className="flex flex-wrap justify-center gap-2 sm:gap-3 pt-2"><span className="badge badge-accent text-xs sm:text-sm">₿ Bitcoin</span><span className="badge badge-accent text-xs sm:text-sm">Ξ Ethereum</span><span className="badge badge-accent text-xs sm:text-sm">₮ USDT</span><span className="badge badge-accent text-xs sm:text-sm">+100 More</span></div>
+              <div className="flex flex-wrap justify-center gap-2 sm:gap-3 pt-2"><span className="badge badge-accent text-xs sm:text-sm">Credit cards</span><span className="badge badge-accent text-xs sm:text-sm">₿ Bitcoin</span><span className="badge badge-accent text-xs sm:text-sm">Ξ Ethereum</span><span className="badge badge-accent text-xs sm:text-sm">₮ USDT</span><span className="badge badge-accent text-xs sm:text-sm">+100 More</span></div>
               <div className="pt-4"><Link href="/category/all" className="btn-primary">Start Shopping</Link></div>
             </div>
           </div>
