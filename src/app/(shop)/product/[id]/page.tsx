@@ -37,6 +37,10 @@ export default function ProductPage() {
         if (found) {
           setProduct(found);
           document.title = `${found.name} - Buy with Crypto | Cryptoelectro-au`;
+          // Ajouter un contenu visible sans JS pour Googlebot
+const noscript = document.createElement("noscript");
+noscript.innerHTML = `<h1>${found.name}</h1><p>${found.shortDescription || found.description?.substring(0, 200) || ""}</p><img src="${found.images?.[0]?.url || ""}" alt="${found.name}" />`;
+document.head.appendChild(noscript);
           const metaDesc = document.querySelector('meta[name="description"]');
           if (metaDesc) {
             metaDesc.setAttribute("content", found.shortDescription || found.description?.substring(0, 160) || `Buy ${found.name} with credit cards and cryptocurrency. Fast shipping Australia-wide.`);
