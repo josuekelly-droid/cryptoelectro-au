@@ -36,15 +36,15 @@ export async function POST(req: NextRequest) {
     },
   });
 
-  notifyGoogleIndexing(`/blog/${post.slug}`)
-  .then((res) => {
-    if (!res.success) {
-      console.error("Indexing failed:", post.slug);
+  // 📢 Notifier Google (avec await pour Vercel)
+  try {
+    const indexingResult = await notifyGoogleIndexing(`/blog/${post.slug}`);
+    if (!indexingResult.success) {
+      console.error("❌ Indexing failed:", indexingResult.error?.message || "Unknown error");
     }
-  })
-  .catch((err) => {
-    console.error("Indexing error:", err);
-  });
+  } catch (err: any) {
+    console.error("❌ Indexing error:", err?.message || err);
+  }
   
   return NextResponse.json({ post }, { status: 201 });
 }
