@@ -86,20 +86,21 @@ export async function POST(req: NextRequest) {
     },
   });
 
+  // 🔍 ENV CHECK
   console.log("🔍 ENV CHECK:", {
-  hasClientEmail: !!process.env.GOOGLE_INDEXING_CLIENT_EMAIL,
-  hasPrivateKey: !!process.env.GOOGLE_INDEXING_PRIVATE_KEY,
-});
-
-  notifyGoogleIndexing(`/product/${product.slug}`)
-  .then((res) => {
-    if (!res.success) {
-      console.error("Indexing failed:", product.slug);
-    }
-  })
-  .catch((err) => {
-    console.error("Indexing error:", err);
+    hasClientEmail: !!process.env.GOOGLE_INDEXING_CLIENT_EMAIL,
+    hasPrivateKey: !!process.env.GOOGLE_INDEXING_PRIVATE_KEY,
   });
+
+  // 📢 Notifier Google (avec await pour Vercel)
+  try {
+    const indexingResult = await notifyGoogleIndexing(`/product/${product.slug}`);
+    if (!indexingResult.success) {
+      console.error("❌ Indexing failed:", indexingResult.error?.message || "Unknown error");
+    }
+  } catch (err: any) {
+    console.error("❌ Indexing error:", err?.message || err);
+  }
 
   return NextResponse.json({ product }, { status: 201 });
 }
