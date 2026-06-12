@@ -86,6 +86,11 @@ export async function POST(req: NextRequest) {
     },
   });
 
+  console.log("🔍 ENV CHECK:", {
+  hasClientEmail: !!process.env.GOOGLE_INDEXING_CLIENT_EMAIL,
+  hasPrivateKey: !!process.env.GOOGLE_INDEXING_PRIVATE_KEY,
+});
+
   notifyGoogleIndexing(`/product/${product.slug}`)
   .then((res) => {
     if (!res.success) {
