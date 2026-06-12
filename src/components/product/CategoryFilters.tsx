@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface CategoryFiltersProps {
@@ -13,20 +13,6 @@ export interface FilterState {
   sortBy: string;
   inStock: boolean;
 }
-
-const availableBrands = [
-  "Samsung",
-  "Apple",
-  "Sony",
-  "LG",
-  "Dell",
-  "HP",
-  "Nikon",
-  "Canon",
-  "Dyson",
-  "Microsoft",
-  "Nintendo",
-];
 
 const sortOptions = [
   { value: "featured", label: "Featured" },
@@ -42,6 +28,18 @@ export default function CategoryFilters({ onFilterChange }: CategoryFiltersProps
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 10000]);
   const [sortBy, setSortBy] = useState("featured");
   const [inStock, setInStock] = useState(false);
+  const [availableBrands, setAvailableBrands] = useState<string[]>([]);
+
+  // 🔄 Charger les marques depuis la base de données
+  useEffect(() => {
+    fetch("/api/brands")
+      .then((r) => r.json())
+      .then((d) => {
+        const brands = (d.brands || []).map((b: any) => b.name);
+        setAvailableBrands(brands);
+      })
+      .catch(() => setAvailableBrands([]));
+  }, []);
 
   const toggleBrand = (brand: string) => {
     const updated = selectedBrands.includes(brand)
