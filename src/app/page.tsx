@@ -51,7 +51,7 @@ function HomeContent() {
             <div className="space-y-6">
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-accent/10 border border-accent/20">
                 <span className="w-2 h-2 rounded-full bg-accent animate-pulse" />
-                <span className="text-xs font-body text-accent">Crypto and Credit card Payments Now Accepted</span>
+                <span className="text-xs font-body text-accent">Crypto and Credit Card Payments Now Accepted</span>
               </div>
               <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-heading font-bold leading-tight">Premium Electronics <span className="text-gradient">for the Modern Age</span></h1>
               <p className="text-base sm:text-lg text-text-primary/60 max-w-lg">Australia&apos;s premier marketplace for high-end electronics. Shop smartphones, cameras, computers, and more. Pay with Credit cards, Bitcoin, Ethereum, USDT, and other cryptocurrencies.</p>
