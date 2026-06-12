@@ -153,7 +153,7 @@ ${[
        * IMPORTANT SEO OPTIMIZATION
        * 1 hour cache = better crawl efficiency than no-store
        */
-      "Cache-Control": "public, max-age=3600, s-maxage=3600",
+      "Cache-Control": "public, max-age=300, s-maxage=300",
     },
   });
 }
