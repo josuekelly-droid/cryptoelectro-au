@@ -141,7 +141,7 @@ function HomeContent() {
                   {brand.slug === "nikon" && (<svg viewBox="0 0 100 24" className="w-full h-full"><rect x="2" y="2" width="96" height="20" rx="3" fill="#000"/><text x="50" y="17" textAnchor="middle" fontFamily="Arial,sans-serif" fontSize="14" fontWeight="900" fill="#FFDE00">Nikon</text></svg>)}
                   {brand.slug === "dyson" && (<svg viewBox="0 0 80 24" className="w-full h-full" fill="currentColor" style={{color:"#000"}}><text x="0" y="20" fontFamily="Arial,sans-serif" fontSize="22" fontWeight="900">dyson</text></svg>)}
                   {brand.slug === "microsoft" && (<svg viewBox="0 0 24 24" className="w-8 h-8 sm:w-10 sm:h-10"><rect x="1" y="1" width="10" height="10" fill="#F25022"/><rect x="13" y="1" width="10" height="10" fill="#7FBA00"/><rect x="1" y="13" width="10" height="10" fill="#00A4EF"/><rect x="13" y="13" width="10" height="10" fill="#FFB900"/></svg>)}
-                  {brand.slug === "nintendo" && (<svg viewBox="0 0 110 24" className="w-full h-full" fill="currentColor" style={{color:"#E60012"}}><text x="0" y="20" fontFamily="Arial,sans-serif" fontSize="22" fontWeight="900">NINTENDO</text></svg>)}
+                  {brand.slug === "nintendo" && (<svg viewBox="0 0 150 20" className="w-full h-full" fill="currentColor" style={{color:"#E60012"}}><text x="0" y="20" fontFamily="Arial,sans-serif" fontSize="22" fontWeight="900">NINTENDO</text></svg>)}
                 </div>
                 <span className="text-xs sm:text-sm font-body text-text-primary/60 group-hover:text-accent transition-colors text-center">{brand.name}</span>
               </Link>
