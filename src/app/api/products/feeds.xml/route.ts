@@ -2,6 +2,15 @@ import { prisma } from "@/lib/prisma";
 
 const SITE_URL = process.env.NEXTAUTH_URL || "https://cryptoelectro-au.store";
 
+function escapeXml(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&apos;");
+}
+
 export async function GET() {
   const products = await prisma.product.findMany({
     where: { isActive: true },
@@ -14,13 +23,13 @@ export async function GET() {
   const items = products.map((p) => `
     <item>
       <g:id>${p.id}</g:id>
-      <g:title>${p.name}</g:title>
-      <g:description>${(p.shortDescription || p.description || "").substring(0, 5000)}</g:description>
-      <g:link>${SITE_URL}/product/${p.slug}</g:link>
-      <g:image_link>${p.images?.[0]?.url || ""}</g:image_link>
+      <g:title>${escapeXml(p.name)}</g:title>
+      <g:description>${escapeXml((p.shortDescription || p.description || "").substring(0, 5000))}</g:description>
+      <g:link>${escapeXml(`${SITE_URL}/product/${p.slug}`)}</g:link>
+      <g:image_link>${escapeXml(p.images?.[0]?.url || "")}</g:image_link>
       <g:availability>${p.inStock ? "in_stock" : "out_of_stock"}</g:availability>
       <g:price>${Number(p.price).toFixed(2)} AUD</g:price>
-      <g:brand>${p.brand?.name || "Cryptoelectro"}</g:brand>
+      <g:brand>${escapeXml(p.brand?.name || "Cryptoelectro")}</g:brand>
       <g:condition>new</g:condition>
     </item>`).join("\n");
 
