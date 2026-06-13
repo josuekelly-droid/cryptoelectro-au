@@ -28,6 +28,7 @@ export default function CareerClient({ slug }: CareerClientProps) {
             title: found.title,
             description: found.description,
             datePosted: found.createdAt,
+            validThrough: new Date(new Date(found.createdAt).getTime() + 365 * 24 * 60 * 60 * 1000).toISOString(),
             employmentType: found.type?.replace("-", "_").toUpperCase(),
             hiringOrganization: {
               "@type": "Organization",
@@ -42,6 +43,8 @@ export default function CareerClient({ slug }: CareerClientProps) {
                 addressLocality: found.location || "Sydney",
                 addressRegion: "NSW",
                 addressCountry: "AU",
+                postalCode: "2000",        
+                streetAddress: "123 George Street",
               },
             },
             baseSalary: found.salary
