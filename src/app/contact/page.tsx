@@ -38,11 +38,13 @@ export default function ContactPage() {
         "@type": "Organization",
         name: "Cryptoelectro-au",
         email: "cryptoelectroau@gmail.com",
-        telephone: "1300 123 456",
+        telephone: "+61 02 9433 9429",
         address: {
           "@type": "PostalAddress",
           addressLocality: "Sydney",
           addressRegion: "NSW",
+          postalCode: "2000",
+          streetAddress: "123 George Street",
           addressCountry: "AU",
         },
         contactPoint: {
@@ -107,8 +109,8 @@ export default function ContactPage() {
         </svg>
       ),
       title: "Phone",
-      value: "1300 123 456",
-      link: "tel:1300123456",
+      value: "+61 02 9433 9429",
+      link: "tel:+610294339429",
     },
     {
       icon: (
@@ -128,7 +130,7 @@ export default function ContactPage() {
         </svg>
       ),
       title: "Location",
-      value: "Sydney, NSW, Australia",
+      value: "123 George Stree, Sydney, NSW, Australia",
       link: null,
     },
   ];
