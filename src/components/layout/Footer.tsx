@@ -21,6 +21,7 @@ const footerLinks = {
       { name: "Affiliate Program", href: "/affiliate-program" },
       { name: "Referral Program", href: "/referral-program" },
       { name: "Careers", href: "/careers" },
+      { name: "Testimonials", href: "/testimonials" },
     ],
   },
   support: {
@@ -30,7 +31,6 @@ const footerLinks = {
       { name: "Shipping", href: "/shipping" },
       { name: "Returns", href: "/returns" },
       { name: "Warranty", href: "/warranty" },
-      { name: "Testimonials", href: "/testimonials" },
     ],
   },
   legal: {
