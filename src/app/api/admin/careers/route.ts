@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
   const career = await prisma.career.create({
     data: {
       title: data.title,
-      slug: data.slug || data.title.toLowerCase().replace(/\s+/g, "-"),
+      slug: data.slug || data.title.toLowerCase().replace(/[&]/g, "and").replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, ""),
       department: data.department,
       location: data.location,
       type: data.type || "Full-time",
