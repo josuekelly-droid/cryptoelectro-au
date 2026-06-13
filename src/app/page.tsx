@@ -66,16 +66,18 @@ function HomeContent() {
     
     // Fetch real testimonials
     fetch("/api/testimonials?limit=50").then(r => r.json()).then(d => {
-      const formatted = (d.testimonials || []).map((t: any) => ({
-        name: `${t.user.firstName} ${t.user.lastName}`,
-        initials: `${t.user.firstName?.charAt(0) || ""}${t.user.lastName?.charAt(0) || ""}`,
-        role: t.role || null,
-        location: t.location || null,
-        content: t.content,
-        rating: t.rating,
-      }));
-      if (formatted.length > 0) setCustomerReviews(formatted);
-    }).catch(() => {});
+  const realReviews = (d.testimonials || []).map((t: any) => ({
+    name: `${t.user.firstName} ${t.user.lastName}`,
+    initials: `${t.user.firstName?.charAt(0) || ""}${t.user.lastName?.charAt(0) || ""}`,
+    role: t.role || null,
+    location: t.location || null,
+    content: t.content,
+    rating: t.rating,
+  }));
+  
+  const mixed = [...realReviews, ...defaultReviews];
+  setCustomerReviews(mixed);
+}).catch(() => {});
   }, []);
 
   return (
