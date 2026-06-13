@@ -457,16 +457,14 @@ export default function AffiliateProgramPage() {
             <div className="text-center mb-12">
               <h2 id="faq-heading" className="text-3xl lg:text-4xl font-heading font-bold">Frequently Asked <span className="text-gradient">Questions</span></h2>
             </div>
-            <div className="space-y-4" itemScope itemType="https://schema.org/FAQPage">
+            <div className="space-y-4" >
               {faqs.map(f => (
-                <details key={f.q} className="card p-6 group" itemScope itemProp="mainEntity" itemType="https://schema.org/Question">
-                  <summary className="cursor-pointer list-none" itemProp="name">
-                    <h3 className="text-base font-heading font-bold mb-2 inline">{f.q}</h3>
-                  </summary>
-                  <div itemScope itemProp="acceptedAnswer" itemType="https://schema.org/Answer">
-                    <p className="text-sm text-text-primary/60 leading-relaxed mt-2" itemProp="text">{f.a}</p>
-                  </div>
-                </details>
+                <details key={f.q} className="card p-6 group">
+  <summary className="cursor-pointer list-none">
+    <h3 className="text-base font-heading font-bold mb-2 inline">{f.q}</h3>
+  </summary>
+  <p className="text-sm text-text-primary/60 leading-relaxed mt-2">{f.a}</p>
+</details>
               ))}
             </div>
           </div>
