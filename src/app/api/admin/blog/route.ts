@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
   const post = await prisma.blogPost.create({
     data: {
       title: data.title,
-      slug: data.slug || data.title.toLowerCase().replace(/\s+/g, "-"),
+      slug: data.slug || data.title.toLowerCase().replace(/[&]/g, "and").replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, ""),
       excerpt: data.excerpt,
       content: data.content,
       category: data.category,
