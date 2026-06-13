@@ -264,18 +264,18 @@ const breadcrumbSchema = {
   ],
 };
 
-const howToSchema = {
-  "@context": "https://schema.org",
-  "@type": "HowTo",
-  "name": "How to Earn with Cryptoelectro-au Affiliate Program",
-  "description": "Five simple steps to start earning crypto commissions as a Cryptoelectro-au affiliate.",
-  "step": howItWorks.map((step, i) => ({
-    "@type": "HowToStep",
-    "position": i + 1,
-    "name": step.title,
-    "text": step.description,
-  })),
-};
+// const howToSchema = {
+//   "@context": "https://schema.org",
+//   "@type": "HowTo",
+//   "name": "How to Earn with Cryptoelectro-au Affiliate Program",
+//   "description": "Five simple steps to start earning crypto commissions as a Cryptoelectro-au affiliate.",
+//   "step": howItWorks.map((step, i) => ({
+//     "@type": "HowToStep",
+//     "position": i + 1,
+//     "name": step.title,
+//     "text": step.description,
+//   })),
+// };
 
 export default function AffiliateProgramPage() {
   const row1Ref = useRef<HTMLDivElement>(null);
@@ -325,11 +325,11 @@ export default function AffiliateProgramPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
       />
-      <Script
+      {/* <Script
         id="schema-howto"
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(howToSchema) }}
-      />
+      /> */}
 
       <div className="min-h-screen">
         {/* Hero */}

@@ -19,8 +19,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 
   return {
-    title: `${product.name} - Buy with Crypto | Cryptoelectro-au`,
-    description: product.shortDescription || `Buy ${product.name} with cryptocurrency. Fast shipping Australia-wide.`,
+    title: `${product.name} - Buy with credit card and Crypto | Cryptoelectro-au`,
+    description: product.shortDescription || `Buy ${product.name} with credit card and cryptocurrency. Fast shipping Australia-wide.`,
     openGraph: {
       title: `${product.name} - Cryptoelectro-au`,
       description: product.shortDescription || "",
