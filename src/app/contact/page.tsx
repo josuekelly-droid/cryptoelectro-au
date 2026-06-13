@@ -130,7 +130,7 @@ export default function ContactPage() {
         </svg>
       ),
       title: "Location",
-      value: "123 George Stree, Sydney, NSW, Australia",
+      value: "123 George Street, Sydney, NSW, Australia",
       link: null,
     },
   ];
