@@ -44,6 +44,7 @@ const MANAGER_RESTRICTED_PAGES = [
   "/admin/banners",
   "/admin/deals",
   "/admin/reviews",
+  "/admin/testimonials",
   "/admin/careers",
   "/admin/blog",
 ];

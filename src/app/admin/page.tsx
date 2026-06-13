@@ -34,6 +34,7 @@ export default function AdminPage() {
     { icon: "🛒", label: "Orders", href: "/admin/orders" },
     { icon: "👥", label: "Customers", href: "/admin/customers" },
     { icon: "⭐", label: "Reviews", href: "/admin/reviews" },
+    { icon: "👍", label: "Testimonials", href: "/admin/testimonials" },
     { icon: "💸", label: "Withdrawals", href: "/admin/withdrawals" },
     { icon: "💼", label: "Careers", href: "/admin/careers" },
     { icon: "📝", label: "Blog", href: "/admin/blog" },
