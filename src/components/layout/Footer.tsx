@@ -30,6 +30,7 @@ const footerLinks = {
       { name: "Shipping", href: "/shipping" },
       { name: "Returns", href: "/returns" },
       { name: "Warranty", href: "/warranty" },
+      { name: "Testimonials", href: "/testimonials" },
     ],
   },
   legal: {
