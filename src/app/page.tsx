@@ -126,24 +126,84 @@ function HomeContent() {
       {/* ===== Trusted Brands ===== */}
       <section className="py-12 sm:py-16 lg:py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-8 sm:mb-12"><h2 className="text-2xl sm:text-3xl lg:text-4xl font-heading font-bold">Trusted <span className="text-gradient">Brands</span></h2><p className="mt-3 sm:mt-4 text-sm sm:text-base text-text-primary/50 max-w-lg mx-auto px-4">We partner with the world&apos;s leading electronics manufacturers</p></div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
+          <div className="text-center mb-8 sm:mb-12">
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-heading font-bold">Trusted <span className="text-gradient">Brands</span></h2>
+            <p className="mt-3 sm:mt-4 text-sm sm:text-base text-text-primary/50 max-w-lg mx-auto px-4">We partner with the world&apos;s leading electronics manufacturers</p>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 sm:gap-5">
             {brands.map((brand: any) => (
-              <Link key={brand.id} href={`/category/all?brand=${brand.slug}`} className="card flex flex-col items-center justify-center p-4 sm:p-6 gap-3 sm:gap-4 group min-h-[130px] sm:min-h-[150px] hover:border-accent/30 transition-all">
-                <div className="w-16 h-10 sm:w-20 sm:h-12 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                  {brand.slug === "samsung" && (<svg viewBox="0 0 120 24" className="w-full h-full" fill="currentColor" style={{color:"#1428A0"}}><text x="0" y="20" fontFamily="Arial,sans-serif" fontSize="22" fontWeight="900">SAMSUNG</text></svg>)}
-                  {brand.slug === "apple" && (<svg viewBox="0 0 24 24" className="w-8 h-8 sm:w-10 sm:h-10" fill="currentColor" style={{color:"#000"}}><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>)}
-                  {brand.slug === "sony" && (<svg viewBox="0 0 80 24" className="w-full h-full" fill="currentColor" style={{color:"#000"}}><text x="0" y="20" fontFamily="Arial,sans-serif" fontSize="22" fontWeight="900">SONY</text></svg>)}
-                  {brand.slug === "lg" && (<svg viewBox="0 0 48 24" className="w-full h-full" fill="currentColor"><circle cx="12" cy="12" r="11" fill="#A50034"/><text x="12" y="17" textAnchor="middle" fontFamily="Arial,sans-serif" fontSize="11" fontWeight="900" fill="#FFF">LG</text></svg>)}
-                  {brand.slug === "dell" && (<svg viewBox="0 0 80 24" className="w-full h-full" fill="currentColor" style={{color:"#007DB8"}}><text x="0" y="20" fontFamily="Arial,sans-serif" fontSize="22" fontWeight="900">DELL</text></svg>)}
-                  {brand.slug === "lenovo" && (<svg viewBox="0 0 100 24" className="w-full h-full" fill="currentColor" style={{color:"#E2231A"}}><text x="0" y="20" fontFamily="Arial,sans-serif" fontSize="22" fontWeight="900">Lenovo</text></svg>)}
-                  {brand.slug === "hp" && (<svg viewBox="0 0 80 24" className="w-full h-full" fill="currentColor" style={{color:"#0096D6"}}><text x="0" y="20" fontFamily="Arial,sans-serif" fontSize="22" fontWeight="900">HP</text></svg>)}
-                  {brand.slug === "nikon" && (<svg viewBox="0 0 100 24" className="w-full h-full"><rect x="2" y="2" width="96" height="20" rx="3" fill="#000"/><text x="50" y="17" textAnchor="middle" fontFamily="Arial,sans-serif" fontSize="14" fontWeight="900" fill="#FFDE00">Nikon</text></svg>)}
-                  {brand.slug === "dyson" && (<svg viewBox="0 0 80 24" className="w-full h-full" fill="currentColor" style={{color:"#000"}}><text x="0" y="20" fontFamily="Arial,sans-serif" fontSize="22" fontWeight="900">dyson</text></svg>)}
-                  {brand.slug === "microsoft" && (<svg viewBox="0 0 24 24" className="w-8 h-8 sm:w-10 sm:h-10"><rect x="1" y="1" width="10" height="10" fill="#F25022"/><rect x="13" y="1" width="10" height="10" fill="#7FBA00"/><rect x="1" y="13" width="10" height="10" fill="#00A4EF"/><rect x="13" y="13" width="10" height="10" fill="#FFB900"/></svg>)}
-                  {brand.slug === "nintendo" && (<svg viewBox="0 0 150 20" className="w-full h-full" fill="currentColor" style={{color:"#E60012"}}><text x="0" y="20" fontFamily="Arial,sans-serif" fontSize="22" fontWeight="900">NINTENDO</text></svg>)}
+              <Link
+                key={brand.id}
+                href={`/category/all?brand=${brand.slug}`}
+                className="card flex flex-col items-center justify-center p-5 sm:p-6 gap-4 group min-h-[140px] sm:min-h-[160px] hover:border-accent/30 transition-all"
+              >
+                {/* Logo container - hauteur fixe pour aligner tous les logos */}
+                <div className="w-full h-12 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                  {brand.slug === "samsung" && (
+                    <svg viewBox="0 0 120 24" className="w-full max-w-[100px] h-auto" fill="currentColor" style={{color:"#1428A0"}}>
+                      <text x="0" y="20" fontFamily="Arial,sans-serif" fontSize="22" fontWeight="900">SAMSUNG</text>
+                    </svg>
+                  )}
+                  {brand.slug === "apple" && (
+                    <svg viewBox="0 0 24 24" className="w-8 h-8 sm:w-10 sm:h-10" fill="currentColor" style={{color:"#000"}}>
+                      <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
+                    </svg>
+                  )}
+                  {brand.slug === "sony" && (
+                    <svg viewBox="0 0 80 24" className="w-full max-w-[80px] h-auto" fill="currentColor" style={{color:"#000"}}>
+                      <text x="0" y="20" fontFamily="Arial,sans-serif" fontSize="22" fontWeight="900">SONY</text>
+                    </svg>
+                  )}
+                  {brand.slug === "lg" && (
+                    <svg viewBox="0 0 48 24" className="w-full max-w-[48px] h-auto" fill="currentColor">
+                      <circle cx="12" cy="12" r="11" fill="#A50034"/>
+                      <text x="12" y="17" textAnchor="middle" fontFamily="Arial,sans-serif" fontSize="11" fontWeight="900" fill="#FFF">LG</text>
+                    </svg>
+                  )}
+                  {brand.slug === "dell" && (
+                    <svg viewBox="0 0 80 24" className="w-full max-w-[80px] h-auto" fill="currentColor" style={{color:"#007DB8"}}>
+                      <text x="0" y="20" fontFamily="Arial,sans-serif" fontSize="22" fontWeight="900">DELL</text>
+                    </svg>
+                  )}
+                  {brand.slug === "lenovo" && (
+                    <svg viewBox="0 0 100 24" className="w-full max-w-[90px] h-auto" fill="currentColor" style={{color:"#E2231A"}}>
+                      <text x="0" y="20" fontFamily="Arial,sans-serif" fontSize="22" fontWeight="900">Lenovo</text>
+                    </svg>
+                  )}
+                  {brand.slug === "hp" && (
+                    <svg viewBox="0 0 80 24" className="w-full max-w-[60px] h-auto" fill="currentColor" style={{color:"#0096D6"}}>
+                      <text x="0" y="20" fontFamily="Arial,sans-serif" fontSize="22" fontWeight="900">HP</text>
+                    </svg>
+                  )}
+                  {brand.slug === "nikon" && (
+                    <svg viewBox="0 0 100 24" className="w-full max-w-[90px] h-auto">
+                      <rect x="2" y="2" width="96" height="20" rx="3" fill="#000"/>
+                      <text x="50" y="17" textAnchor="middle" fontFamily="Arial,sans-serif" fontSize="14" fontWeight="900" fill="#FFDE00">Nikon</text>
+                    </svg>
+                  )}
+                  {brand.slug === "dyson" && (
+                    <svg viewBox="0 0 80 24" className="w-full max-w-[80px] h-auto" fill="currentColor" style={{color:"#000"}}>
+                      <text x="0" y="20" fontFamily="Arial,sans-serif" fontSize="22" fontWeight="900">dyson</text>
+                    </svg>
+                  )}
+                  {brand.slug === "microsoft" && (
+                    <svg viewBox="0 0 24 24" className="w-8 h-8 sm:w-10 sm:h-10">
+                      <rect x="1" y="1" width="10" height="10" fill="#F25022"/>
+                      <rect x="13" y="1" width="10" height="10" fill="#7FBA00"/>
+                      <rect x="1" y="13" width="10" height="10" fill="#00A4EF"/>
+                      <rect x="13" y="13" width="10" height="10" fill="#FFB900"/>
+                    </svg>
+                  )}
+                  {brand.slug === "nintendo" && (
+                    <svg viewBox="0 0 120 24" className="w-full max-w-[110px] h-auto" fill="currentColor" style={{color:"#E60012"}}>
+                      <text x="0" y="20" fontFamily="Arial,sans-serif" fontSize="22" fontWeight="900">NINTENDO</text>
+                    </svg>
+                  )}
                 </div>
-                <span className="text-xs sm:text-sm font-body text-text-primary/60 group-hover:text-accent transition-colors text-center">{brand.name}</span>
+                {/* Nom de la marque - toujours centré et aligné */}
+                <span className="text-xs sm:text-sm font-body text-text-primary/60 group-hover:text-accent transition-colors text-center leading-tight">
+                  {brand.name}
+                </span>
               </Link>
             ))}
           </div>
