@@ -8,6 +8,7 @@ import { AuthProvider } from "@/hooks/useAuth";
 import SchemaScript from "@/components/ui/SchemaScript";
 import "./globals.css";
 import PromoBanner from "@/components/ui/PromoBanner";
+import CookieConsent from "@/components/ui/CookieConsent";
 
 // ============ FONTS ============
 const montserrat = Montserrat({
@@ -171,6 +172,7 @@ export default function RootLayout({
             </CartProvider>
           </WishlistProvider>
         </AuthProvider>
+        <CookieConsent />
       </body>
     </html>
   );
