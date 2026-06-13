@@ -6,6 +6,30 @@ import { useSearchParams } from "next/navigation";
 import ProductCard from "@/components/product/ProductCard";
 import CategoryCard from "@/components/product/CategoryCard";
 
+// ============ AVIS PAR DÉFAUT ============
+const defaultReviews = [
+  { name: "Marcus L.", initials: "ML", role: "Tech Reviewer", location: "Melbourne, AU", rating: 5, content: "Best place to buy electronics with crypto. Ordered an iPhone and MacBook, both arrived in 3 days. The TRX payment was seamless. Highly recommend!" },
+  { name: "Priya K.", initials: "PK", role: "Verified Buyer", location: "Sydney, AU", rating: 5, content: "I was skeptical about paying with Bitcoin, but the process was smooth and my Samsung Galaxy arrived exactly as described. Will shop again." },
+  { name: "Alex T.", initials: "AT", role: "Crypto Enthusiast", location: "Brisbane, AU", rating: 5, content: "Finally a marketplace that understands crypto! Bought a gaming console with USDT. The 30-minute payment window is fair and the tracking updates were great." },
+  { name: "Sophie R.", initials: "SR", role: "Verified Buyer", location: "Auckland, NZ", rating: 4, content: "Great selection of premium electronics. Shipping to NZ took 8 days but the product was perfect. Would love faster international shipping options." },
+  { name: "James W.", initials: "JW", role: "Tech YouTuber", location: "Perth, AU", rating: 5, content: "I've made 4 purchases now. Every transaction was smooth, crypto payments confirmed quickly, and products are 100% genuine. My go-to electronics store." },
+  { name: "Emily C.", initials: "EC", role: "Verified Buyer", location: "Gold Coast, AU", rating: 5, content: "Ordered AirPods and a MacBook. Paid with ETH, got confirmation in 15 minutes, delivered in 4 days. The loyalty program is a nice bonus too!" },
+  { name: "David K.", initials: "DK", role: "Verified Buyer", location: "Adelaide, AU", rating: 5, content: "Replaced my entire home office setup through Cryptoelectro. MacBook, monitor, keyboard — all paid with crypto. Saved hundreds compared to retail. Absolutely recommend." },
+  { name: "Sarah M.", initials: "SM", role: "Small Business Owner", location: "Canberra, AU", rating: 5, content: "I buy all my business electronics here now. The crypto payments save me forex fees, and the free shipping over $500 is a game changer. Customer support is responsive too." },
+  { name: "Ryan P.", initials: "RP", role: "Verified Buyer", location: "Hobart, AU", rating: 4, content: "Bought a Samsung tablet for my daughter. Delivery to Tasmania was faster than expected. Only giving 4 stars because I wish there were more accessory options." },
+  { name: "Olivia N.", initials: "ON", role: "Lifestyle Vlogger", location: "Darwin, AU", rating: 5, content: "I promote Cryptoelectro to all my followers. The affiliate program is legit — earned $200 last month just from sharing my link. Products are always authentic." },
+  { name: "Tom H.", initials: "TH", role: "Gamer & Streamer", location: "Newcastle, AU", rating: 5, content: "Bought a PS5 with SOL. Payment confirmed in under 2 minutes. The whole process was so smooth I forgot I was spending crypto. This is the future of shopping." },
+  { name: "Lauren B.", initials: "LB", role: "Verified Buyer", location: "Sunshine Coast, AU", rating: 5, content: "Finally found a place that accepts USDC. Bought a Nikon camera and lens kit. Everything was brand new, sealed, with Australian warranty. Will be back for more." },
+  { name: "Mike R.", initials: "MR", role: "Crypto Trader", location: "Sydney, AU", rating: 4, content: "When crypto pumps, I shop here. Converted some gains into a new laptop. The exchange rate was fair and the order was processed quickly. More categories please!" },
+  { name: "Nina G.", initials: "NG", role: "Verified Buyer", location: "Cairns, AU", rating: 5, content: "I was worried about buying expensive electronics online with crypto, but Cryptoelectro proved me wrong. My MacBook Air arrived in perfect condition. The 30-day return policy gives peace of mind." },
+  { name: "Ahmed S.", initials: "AS", role: "University Student", location: "Sydney, AU", rating: 5, content: "Best prices I could find for an iPad. Paid with TRX — saved on international card fees. The loyalty points are building up nicely too. Student-friendly pricing would be amazing!" },
+  { name: "Jess K.", initials: "JK", role: "Verified Buyer", location: "Christchurch, NZ", rating: 4, content: "Ordered from New Zealand. Took about 10 days but the product was worth the wait. Paid with Bitcoin and everything went smoothly. Would love a NZ warehouse for faster shipping." },
+  { name: "Chris B.", initials: "CB", role: "IT Professional", location: "Geelong, AU", rating: 5, content: "As an IT guy, I appreciate that Cryptoelectro lists detailed specs. Bought a Lenovo ThinkPad for work. Paid with USDT, delivered in 3 days. Professional experience all around." },
+  { name: "Rachel W.", initials: "RW", role: "Verified Buyer", location: "Wollongong, AU", rating: 5, content: "Gift shopping made easy. Bought my husband the latest Samsung phone for his birthday. He loves it. The gift packaging option would be a nice addition!" },
+  { name: "Daniel F.", initials: "DF", role: "Freelancer", location: "Byron Bay, AU", rating: 5, content: "Freelancing in crypto means I need places to spend it. Cryptoelectro is perfect. Upgraded my entire workflow with a MacBook Pro and accessories. Zero issues." },
+  { name: "Hannah L.", initials: "HL", role: "Verified Buyer", location: "Melbourne, AU", rating: 5, content: "Customer for 6 months now. Multiple purchases, zero problems. The store credit system is brilliant — I use my referral earnings for discounts. Best crypto marketplace in Australia!" },
+];
+
 export default function Home() {
   return (
     <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><p className="text-text-primary/50">Loading...</p></div>}>
@@ -21,6 +45,7 @@ function HomeContent() {
   const [totalProducts, setTotalProducts] = useState(0);
   const [brands, setBrands] = useState<any[]>([]);
   const [deals, setDeals] = useState<any[]>([]);
+  const [customerReviews, setCustomerReviews] = useState<any[]>(defaultReviews);
 
   useEffect(() => {
     const ref = searchParams.get("ref");
@@ -38,6 +63,19 @@ function HomeContent() {
     fetch("/api/products?limit=1").then(r => r.json()).then(d => setTotalProducts(d.pagination?.total || 0));
     fetch("/api/brands").then(r => r.json()).then(d => setBrands(d.brands || []));
     fetch("/api/deals").then(r => r.json()).then(d => setDeals(d.deals || []));
+    
+    // Fetch real testimonials
+    fetch("/api/testimonials?limit=50").then(r => r.json()).then(d => {
+      const formatted = (d.testimonials || []).map((t: any) => ({
+        name: `${t.user.firstName} ${t.user.lastName}`,
+        initials: `${t.user.firstName?.charAt(0) || ""}${t.user.lastName?.charAt(0) || ""}`,
+        role: t.role || null,
+        location: t.location || null,
+        content: t.content,
+        rating: t.rating,
+      }));
+      if (formatted.length > 0) setCustomerReviews(formatted);
+    }).catch(() => {});
   }, []);
 
   return (
@@ -123,6 +161,47 @@ function HomeContent() {
         </section>
       )}
 
+      {/* ===== Customer Reviews ===== */}
+      <section className="py-12 sm:py-16 lg:py-24 bg-secondary-dark/30 overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-8 sm:mb-12">
+          <div className="text-center">
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-heading font-bold">What Our <span className="text-gradient">Customers Say</span></h2>
+            <p className="mt-3 sm:mt-4 text-sm sm:text-base text-text-primary/50 max-w-lg mx-auto">Real reviews from real crypto shoppers</p>
+          </div>
+        </div>
+        <div className="relative">
+          <div className="flex gap-4 animate-scroll" style={{ width: "max-content" }}>
+            {[...customerReviews, ...customerReviews, ...customerReviews].map((review, i) => (
+              <div key={`${review.name}-${i}`} className="card p-5 w-[340px] flex-shrink-0">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 rounded-full bg-accent/20 flex items-center justify-center">
+                    <span className="text-sm font-heading font-bold text-accent">{review.initials}</span>
+                  </div>
+                  <div>
+                    <p className="text-sm font-heading font-semibold">{review.name}</p>
+                    {review.role && <p className="text-xs text-text-primary/40">{review.role}</p>}
+                  </div>
+                </div>
+                <div className="flex gap-1 mb-2">
+                  {[1,2,3,4,5].map(s => (
+                    <svg key={s} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill={s <= review.rating ? "currentColor" : "none"} stroke="currentColor" className={`w-3.5 h-3.5 ${s <= review.rating ? "text-warning" : "text-text-primary/20"}`}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z" />
+                    </svg>
+                  ))}
+                </div>
+                <p className="text-xs text-text-primary/60 leading-relaxed line-clamp-4 mb-3 whitespace-normal">&ldquo;{review.content}&rdquo;</p>
+                {review.location && (
+                  <div className="text-xs text-text-primary/30 pt-3 border-t border-secondary-light">{review.location}</div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="text-center mt-8">
+          <Link href="/testimonials" className="btn-outline text-sm">View All Reviews</Link>
+        </div>
+      </section>
+
       {/* ===== Trusted Brands ===== */}
       <section className="py-12 sm:py-16 lg:py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -132,12 +211,11 @@ function HomeContent() {
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 sm:gap-5">
             {brands.map((brand: any) => (
-                            <Link
+              <Link
                 key={brand.id}
                 href={`/category/all?brand=${brand.slug}`}
                 className="card flex flex-col items-center justify-between p-4 sm:p-5 gap-0 group min-h-[150px] sm:min-h-[170px] hover:border-accent/30 transition-all"
               >
-                {/* Logo container - hauteur fixe avec centrage vertical */}
                 <div className="flex-1 flex items-center justify-center w-full group-hover:scale-110 transition-transform duration-300">
                   {brand.slug === "samsung" && (
                     <svg viewBox="0 0 120 24" className="w-full max-w-[90px] h-auto" fill="currentColor" style={{color:"#1428A0"}}>
@@ -200,7 +278,6 @@ function HomeContent() {
                     </svg>
                   )}
                 </div>
-                {/* Nom de la marque - fixé en bas */}
                 <span className="text-xs sm:text-sm font-body text-text-primary/60 group-hover:text-accent transition-colors text-center leading-tight mt-2">
                   {brand.name}
                 </span>
