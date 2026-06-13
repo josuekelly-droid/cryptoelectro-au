@@ -154,6 +154,7 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://images.unsplash.com" />
         <link rel="dns-prefetch" href="https://api.nowpayments.io" />
         <meta name="google" content="notranslate" />
+        <meta name="google-site-verification" content="dIeA_gS8rizOqGUOdY-wdMbwvt4-jmxSCdMDD6uYLSI" />
       </head>
       <body
         className={`${montserrat.variable} ${sourceSans.variable} ${firaCode.variable} antialiased min-h-screen flex flex-col`}
