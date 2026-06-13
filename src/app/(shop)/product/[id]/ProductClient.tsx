@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+
 import Link from "next/link";
 import { motion } from "framer-motion";
 import Breadcrumb from "@/components/ui/Breadcrumb";
@@ -10,9 +10,11 @@ import ProductCard from "@/components/product/ProductCard";
 import { useCart } from "@/lib/cart";
 import { useWishlist } from "@/lib/wishlist";
 
-export default function ProductPage() {
-  const params = useParams();
-  const slug = params.id as string;
+interface ProductClientProps {
+  slug: string;
+}
+
+export default function ProductPage ({ slug }: ProductClientProps) {
   const { addToCart } = useCart();
   const { isInWishlist, toggleWishlist } = useWishlist();
 
