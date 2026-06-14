@@ -212,7 +212,7 @@ export default function TestimonialsPage() {
               "reviewCount": allReviews.length,
               "bestRating": "5",
             },
-            "review": allReviews.slice(0, 50).map((t: any) => ({
+            "review": allReviews.slice(0, 50000).map((t: any) => ({
               "@type": "Review",
               "author": { "@type": "Person", "name": `${t.user.firstName} ${t.user.lastName}` },
               "datePublished": t.createdAt,
