@@ -28,7 +28,7 @@ const defaultReviews = [
   { name: "Rachel W.", initials: "RW", role: "Verified Buyer", location: "Wollongong, AU", rating: 5, content: "Gift shopping made easy. Bought my husband the latest Samsung phone for his birthday. He loves it. The gift packaging option would be a nice addition!" },
   { name: "Daniel F.", initials: "DF", role: "Freelancer", location: "Byron Bay, AU", rating: 5, content: "Freelancing in crypto means I need places to spend it. Cryptoelectro is perfect. Upgraded my entire workflow with a MacBook Pro and accessories. Zero issues." },
   { name: "Hannah L.", initials: "HL", role: "Verified Buyer", location: "Melbourne, AU", rating: 5, content: "Customer for 6 months now. Multiple purchases, zero problems. The store credit system is brilliant — I use my referral earnings for discounts. Best crypto marketplace in Australia!" },
-    { name: "Liam E.", initials: "LE", role: "Verified Buyer", location: "Sydney, AU", rating: 5, content: "Switched from Amazon to Cryptoelectro and never looked back. Bought a MacBook Pro with USDT — delivered in 2 days. The whole crypto checkout is addictively smooth." },
+  { name: "Liam E.", initials: "LE", role: "Verified Buyer", location: "Sydney, AU", rating: 5, content: "Switched from Amazon to Cryptoelectro and never looked back. Bought a MacBook Pro with USDT — delivered in 2 days. The whole crypto checkout is addictively smooth." },
   { name: "Isabella M.", initials: "IM", role: "Crypto Investor", location: "Melbourne, AU", rating: 5, content: "I cashed out some Ethereum gains to buy an iPad Pro and iPhone. The prices are competitive and paying with crypto means no bank fees. This is how shopping should be." },
   { name: "Noah W.", initials: "NW", role: "Software Developer", location: "Brisbane, AU", rating: 5, content: "As a dev, I love the clean UX and fast crypto payments. Ordered a Dell XPS laptop with Solana — confirmed in seconds. The detailed product specs helped me compare models easily." },
   { name: "Charlotte D.", initials: "CD", role: "Verified Buyer", location: "Perth, AU", rating: 5, content: "First time paying with Bitcoin — I was nervous but the step-by-step checkout made it foolproof. My Samsung tablet arrived in perfect condition. I'm a crypto convert now." },
@@ -191,7 +191,7 @@ export default function TestimonialsPage() {
           isStatic: true,
         }));
 
-        
+        // Mélanger : vrais avis d'abord, puis statiques
         const allReviews = [...realReviews, ...staticFormatted];
         setTestimonials(allReviews);
         setLoading(false);
@@ -271,6 +271,7 @@ export default function TestimonialsPage() {
         <h1 className="text-3xl lg:text-4xl font-heading font-bold">Customer <span className="text-gradient">Reviews</span></h1>
         <p className="mt-4 text-text-primary/50 max-w-xl mx-auto">Real reviews from real customers. Share your experience with Cryptoelectro-au.</p>
 
+        {/* Note moyenne + compteur en temps réel */}
         {testimonials.length > 0 && (
           <div className="flex items-center justify-center gap-2 mt-4">
             <div className="flex gap-0.5">
@@ -281,11 +282,12 @@ export default function TestimonialsPage() {
               ))}
             </div>
             <span className="text-sm font-medium text-text-primary">{avgRating} out of 5</span>
-            <span className="text-sm text-text-primary/40">· {testimonials.length} review{testimonials.length > 1 ? "s" : ""}</span>
+            <span className="text-sm text-text-primary/40">· {testimonials.length} review{testimonials.length !== 1 ? "s" : ""}</span>
           </div>
         )}
       </div>
 
+      {/* Bouton écrire un avis */}
       <div className="text-center mb-10">
         {user ? (
           !showForm ? (
@@ -361,9 +363,12 @@ export default function TestimonialsPage() {
                 <div className="w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center">
                   <span className="text-xs font-bold text-accent">{t.user.firstName?.charAt(0)}{t.user.lastName?.charAt(0)}</span>
                 </div>
-                <div>
-                  <p className="text-xs font-medium">{t.user.firstName} {t.user.lastName}</p>
-                  {t.role && <p className="text-xs text-text-primary/40">{t.role}</p>}
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-medium truncate">{t.user.firstName} {t.user.lastName}</p>
+                  <div className="flex items-center gap-2">
+                    {t.role && <p className="text-xs text-text-primary/40 truncate">{t.role}</p>}
+                    {t.location && <p className="text-xs text-text-primary/30">· {t.location}</p>}
+                  </div>
                 </div>
               </div>
             </motion.div>
