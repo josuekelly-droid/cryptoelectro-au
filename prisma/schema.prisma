@@ -462,6 +462,18 @@ model SharedWishlist {
   @@map("shared_wishlists")
 }
 
+model IndexingLog {
+  id        String   @id @default(cuid())
+  url       String
+  type      String   // "product", "blog", "career", "category", "static"
+  status    String   @default("pending") // "pending", "success", "error"
+  error     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("indexing_logs")
+}
+
 model Testimonial {
   id          String   @id @default(cuid())
   userId      String

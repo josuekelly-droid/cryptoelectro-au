@@ -39,6 +39,7 @@ export default function AdminPage() {
     { icon: "💼", label: "Careers", href: "/admin/careers" },
     { icon: "📝", label: "Blog", href: "/admin/blog" },
     { icon: "🔍", label: "Audit Logs", href: "/admin/audit" },
+    { icon: "🔄", label: "Indexing", href: "/admin/indexing" },
     { icon: "⚙️", label: "Settings", href: "/admin/settings" },
   ];
 
