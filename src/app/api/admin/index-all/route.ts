@@ -25,68 +25,64 @@ export async function POST(req: NextRequest) {
 
   const urls: { url: string; type: string }[] = [];
 
-  try {
-    // 1. Récupérer toutes les URLs
-    const [products, categories, blogPosts, careers] = await Promise.all([
-      prisma.product.findMany({ where: { isActive: true }, select: { slug: true } }),
-      prisma.category.findMany({ where: { isActive: true }, select: { slug: true } }),
-      prisma.blogPost.findMany({ where: { published: true }, select: { slug: true } }),
-      prisma.career.findMany({ where: { isActive: true }, select: { slug: true } }),
-    ]);
+  // 1. Récupérer toutes les URLs
+  const [products, categories, blogPosts, careers] = await Promise.all([
+    prisma.product.findMany({ where: { isActive: true }, select: { slug: true } }),
+    prisma.category.findMany({ where: { isActive: true }, select: { slug: true } }),
+    prisma.blogPost.findMany({ where: { published: true }, select: { slug: true } }),
+    prisma.career.findMany({ where: { isActive: true }, select: { slug: true } }),
+  ]);
 
-    const staticPages = [
-      "/", "/category/all", "/blog", "/careers", "/contact", "/faq",
-      "/shipping", "/testimonials", "/returns", "/terms", "/privacy",
-      "/about", "/affiliate-program", "/referral-program", "/search", "/warranty",
-    ];
+  const staticPages = [
+    "/", "/category/all", "/blog", "/careers", "/contact", "/faq",
+    "/shipping", "/testimonials", "/returns", "/terms", "/privacy",
+    "/about", "/affiliate-program", "/referral-program", "/search", "/warranty",
+  ];
 
-    // Construire la liste complète
-    staticPages.forEach((slug) => urls.push({ url: slug, type: "static" }));
-    categories.forEach((c) => urls.push({ url: `/category/${c.slug}`, type: "category" }));
-    products.forEach((p) => urls.push({ url: `/product/${p.slug}`, type: "product" }));
-    blogPosts.forEach((b) => urls.push({ url: `/blog/${b.slug}`, type: "blog" }));
-    careers.forEach((c) => urls.push({ url: `/careers/${c.slug}`, type: "career" }));
+  staticPages.forEach((slug) => urls.push({ url: slug, type: "static" }));
+  categories.forEach((c) => urls.push({ url: `/category/${c.slug}`, type: "category" }));
+  products.forEach((p) => urls.push({ url: `/product/${p.slug}`, type: "product" }));
+  blogPosts.forEach((b) => urls.push({ url: `/blog/${b.slug}`, type: "blog" }));
+  careers.forEach((c) => urls.push({ url: `/careers/${c.slug}`, type: "career" }));
 
-    // 2. Créer les logs en "pending"
-    await prisma.indexingLog.createMany({
-      data: urls.map((u) => ({ url: u.url, type: u.type, status: "pending" })),
-    });
+  // 2. Créer les logs en "pending"
+  await prisma.indexingLog.createMany({
+    data: urls.map((u) => ({ url: u.url, type: u.type, status: "pending" })),
+  });
 
-    // 3. Retourner immédiatement pour ne pas bloquer l'UI
-    const response = NextResponse.json({
-      message: `Indexing started for ${urls.length} URLs`,
-      total: urls.length,
-    });
+  console.log(`🚀 Starting indexing for ${urls.length} URLs`);
 
-    // 4. Lancer l'indexation en arrière-plan (non bloquant)
-    (async () => {
-      for (const item of urls) {
-        try {
-          const result = await notifyGoogleIndexing(item.url);
-          
-          await prisma.indexingLog.updateMany({
-            where: { url: item.url, status: "pending" },
-            data: {
-              status: result.success ? "success" : "error",
-              error: result.success ? null : result.error?.message || "Unknown error",
-            },
-          });
-          
-          console.log(`${result.success ? "✅" : "❌"} Indexed: ${item.url}`);
-        } catch (err: any) {
-          await prisma.indexingLog.updateMany({
-            where: { url: item.url, status: "pending" },
-            data: { status: "error", error: err?.message || "Failed" },
-          });
-        }
-        
-        // Pause de 1 seconde entre chaque pour respecter les quotas Google
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-      }
-    })();
-
-    return response;
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  // 3. Indexer chaque URL (bloquant cette fois)
+  for (const item of urls) {
+    try {
+      console.log(`📤 Indexing: ${item.url}`);
+      const result = await notifyGoogleIndexing(item.url);
+      
+      await prisma.indexingLog.updateMany({
+        where: { url: item.url, status: "pending" },
+        data: {
+          status: result.success ? "success" : "error",
+          error: result.success ? null : result.error?.message || "Unknown error",
+        },
+      });
+      
+      console.log(`${result.success ? "✅" : "❌"} ${item.url}`);
+    } catch (err: any) {
+      console.error(`❌ ${item.url}:`, err?.message);
+      await prisma.indexingLog.updateMany({
+        where: { url: item.url, status: "pending" },
+        data: { status: "error", error: err?.message || "Failed" },
+      });
+    }
+    
+    // Pause de 500ms entre chaque pour respecter les quotas Google
+    await new Promise((resolve) => setTimeout(resolve, 500));
   }
+
+  console.log(`✅ Indexing complete: ${urls.length} URLs`);
+
+  return NextResponse.json({
+    message: `Indexing complete for ${urls.length} URLs`,
+    total: urls.length,
+  });
 }
