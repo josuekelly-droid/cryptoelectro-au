@@ -75,8 +75,9 @@ export async function POST(req: NextRequest) {
       });
     }
     
-    // Pause de 500ms entre chaque pour respecter les quotas Google
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    // De 500ms → 1000ms (1 seconde)
+await new Promise((resolve) => setTimeout(resolve, 1000));
+
   }
 
   console.log(`✅ Indexing complete: ${urls.length} URLs`);
