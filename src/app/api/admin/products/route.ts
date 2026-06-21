@@ -7,6 +7,17 @@ const JWT_SECRET = new TextEncoder().encode(
   process.env.NEXTAUTH_SECRET || "cryptoelectro-au-secret-key-change-in-production"
 );
 
+function cleanSlug(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/[–—]/g, "-")
+    .replace(/[&]/g, "and")
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
 async function isAdmin(req: NextRequest): Promise<boolean> {
   const token = req.cookies.get("auth-token")?.value;
   if (!token) return false;
@@ -50,7 +61,7 @@ export async function POST(req: NextRequest) {
   const product = await prisma.product.create({
     data: {
       name: data.name,
-      slug: data.slug || data.name.toLowerCase().replace(/\s+/g, "-"),
+      slug: data.slug || cleanSlug(data.name),
       description: data.description,
       shortDescription: data.shortDescription,
       metaTitle: data.metaTitle || null,
