@@ -75,8 +75,8 @@ export async function POST(req: NextRequest) {
       });
     }
     
-    // De 500ms → 1000ms (1 seconde)
-await new Promise((resolve) => setTimeout(resolve, 1000));
+    // De 1000ms → 500ms 
+await new Promise((resolve) => setTimeout(resolve, 500));
 
   }
 

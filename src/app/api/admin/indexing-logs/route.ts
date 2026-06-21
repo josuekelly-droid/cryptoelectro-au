@@ -42,12 +42,22 @@ export async function GET(req: NextRequest) {
     }),
   ]);
 
-  const summary = {
-    total: logs.length,
-    pending: stats.find((s) => s.status === "pending")?._count || 0,
-    success: stats.find((s) => s.status === "success")?._count || 0,
-    error: stats.find((s) => s.status === "error")?._count || 0,
+  const getCount = (status: string): number => {
+    const found = stats.find((s) => s.status === status);
+    if (!found) return 0;
+    return Number(found._count);
   };
+
+  const summary = {
+    total: getCount("success") + getCount("pending") + getCount("error"),
+    pending: getCount("pending"),
+    success: getCount("success"),
+    error: getCount("error"),
+  };
+
+  // 📊 Log visible dans Vercel
+  console.log("📊 INDEXING STATS:", JSON.stringify(summary));
+  console.log(`📊 Filter: ${filter} | Showing: ${logs.length} logs`);
 
   return NextResponse.json({ logs, summary });
 }
