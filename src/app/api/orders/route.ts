@@ -8,6 +8,17 @@ const JWT_SECRET = new TextEncoder().encode(
   process.env.NEXTAUTH_SECRET || "cryptoelectro-au-secret-key-change-in-production"
 );
 
+// 🔒 Mapping du tier → pourcentage de réduction loyalty
+function getLoyaltyPercent(tier: string): number {
+  switch (tier) {
+    case "DIAMOND": return 20;
+    case "PLATINUM": return 15;
+    case "GOLD": return 10;
+    case "SILVER": return 5;
+    default: return 0;
+  }
+}
+
 function getRewardTier(points: number) {
   if (points >= 2500) return "DIAMOND";
   if (points >= 1000) return "PLATINUM";
@@ -20,19 +31,12 @@ function getRewardTier(points: number) {
 async function cancelExpiredOrders(userId: string) {
   const now = new Date();
 
-  // Trouver les commandes expirées avec les infos nécessaires pour les emails
   const expiredOrders = await prisma.order.findMany({
     where: {
       userId,
-      paymentStatus: {
-        in: ["PENDING", "WAITING_CONFIRMATION"],
-      },
-      expiresAt: {
-        lte: now,
-      },
-      status: {
-        not: "CANCELLED",
-      },
+      paymentStatus: { in: ["PENDING", "WAITING_CONFIRMATION"] },
+      expiresAt: { lte: now },
+      status: { not: "CANCELLED" },
     },
     select: {
       id: true,
@@ -45,30 +49,19 @@ async function cancelExpiredOrders(userId: string) {
         select: {
           quantity: true,
           price: true,
-          product: {
-            select: {
-              name: true,
-            },
-          },
+          product: { select: { name: true } },
         },
       },
       user: {
-        select: {
-          email: true,
-          firstName: true,
-          lastName: true,
-        },
+        select: { email: true, firstName: true, lastName: true },
       },
     },
   });
 
   if (expiredOrders.length === 0) return 0;
 
-  // Annuler les commandes
   await prisma.order.updateMany({
-    where: {
-      id: { in: expiredOrders.map((o) => o.id) },
-    },
+    where: { id: { in: expiredOrders.map((o) => o.id) } },
     data: {
       status: "CANCELLED",
       paymentStatus: "EXPIRED",
@@ -76,20 +69,16 @@ async function cancelExpiredOrders(userId: string) {
     },
   });
 
-  // Récupérer les admins une seule fois
   const admins = await prisma.user.findMany({
     where: { role: "ADMIN" },
     select: { email: true },
   });
 
-  // Envoyer les emails pour chaque commande expirée
   for (const order of expiredOrders) {
     const user = order.user;
 
-  // Audit log pour la commande expirée
     await logOrderExpired(userId, order.orderNumber, "Délai de paiement dépassé (30 minutes)");
 
-    // Email client
     if (user?.email) {
       sendOrderExpiredEmail(user.email, {
         orderNumber: order.orderNumber,
@@ -104,7 +93,6 @@ async function cancelExpiredOrders(userId: string) {
       }).catch((err) => console.error("Client expired email error:", err));
     }
 
-    // Email admins
     for (const admin of admins) {
       if (admin.email) {
         sendOrderExpiredAdminEmail(admin.email, {
@@ -143,10 +131,8 @@ export async function GET(req: NextRequest) {
     const { payload } = await jwtVerify(token, JWT_SECRET);
     const userId = payload.userId as string;
 
-    // VÉRIFICATION ET ANNULATION DES COMMANDES EXPIRÉES AVANT DE LES RETOURNER
     await cancelExpiredOrders(userId);
 
-    // Récupérer toutes les commandes
     const orders = await prisma.order.findMany({
       where: { userId },
       include: {
@@ -166,7 +152,7 @@ export async function GET(req: NextRequest) {
   }
 }
 
-// ============ POST : Créer une commande avec expiration ============
+// ============ POST : Créer une commande SÉCURISÉE ============
 export async function POST(req: NextRequest) {
   const token = req.cookies.get("auth-token")?.value;
   if (!token) {
@@ -188,41 +174,179 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "No items in order" }, { status: 400 });
   }
 
-  const subtotal = orderItems.reduce(
-    (s: number, i: any) => s + Number(i.price) * Number(i.quantity),
-    0
-  );
-  const total = body.total || (subtotal + Number(body.shipping || 0) + Number(body.tax || 0));
+  if (orderItems.length > 50) {
+    return NextResponse.json({ error: "Too many items in order" }, { status: 400 });
+  }
 
-  // Récupérer les noms des produits pour l'email
+  // 🔒 ÉTAPE 1 : Récupérer les VRAIS produits depuis la DB
   const productIds = orderItems.map((i: any) => i.productId);
   const products = await prisma.product.findMany({
-    where: { id: { in: productIds } },
-    select: { id: true, name: true },
+    where: { id: { in: productIds }, isActive: true },
+    select: { id: true, name: true, price: true, inStock: true, stockQuantity: true },
   });
-  const productMap = new Map(products.map((p) => [p.id, p.name]));
 
-  // ============ CRÉATION DE LA COMMANDE AVEC expiresAt ============
-  const expiresAt = new Date(Date.now() + 30 * 60 * 1000); // +30 minutes
+  if (products.length !== productIds.length) {
+    return NextResponse.json(
+      { error: "Some products are invalid or unavailable" },
+      { status: 400 }
+    );
+  }
+
+  const productMap = new Map(products.map((p) => [p.id, p]));
+
+  // 🔒 ÉTAPE 2 : Recalculer le subtotal avec les VRAIS prix DB
+  let subtotal = 0;
+  const validatedItems: { productId: string; color: string; quantity: number; price: number }[] = [];
+
+  for (const item of orderItems) {
+    const product = productMap.get(item.productId);
+    if (!product) {
+      return NextResponse.json({ error: "Product not found" }, { status: 400 });
+    }
+
+    const qty = Math.floor(Number(item.quantity));
+    if (!Number.isFinite(qty) || qty < 1 || qty > 50) {
+      return NextResponse.json(
+        { error: `Invalid quantity for ${product.name}` },
+        { status: 400 }
+      );
+    }
+
+    if (!product.inStock) {
+      return NextResponse.json(
+        { error: `${product.name} is out of stock` },
+        { status: 400 }
+      );
+    }
+
+    const realPrice = Number(product.price);
+    subtotal += realPrice * qty;
+
+    validatedItems.push({
+      productId: item.productId,
+      color: item.color || "Default",
+      quantity: qty,
+      price: realPrice, // ✅ Vrai prix DB
+    });
+  }
+
+  subtotal = Math.round(subtotal * 100) / 100;
+
+  // 🔒 ÉTAPE 3 : Recalculer shipping et tax selon TES règles
+  const shipping = subtotal > 500 ? 0 : 29.99;
+  const tax = Math.round(subtotal * 0.1 * 100) / 100;
+
+  // 🔒 ÉTAPE 4 : Récupérer la loyalty discount depuis la DB
+  const reward = await prisma.reward.findUnique({ where: { userId } });
+  const loyaltyPercent = reward ? getLoyaltyPercent(reward.tier) : 0;
+  const loyaltyDiscount = Math.round(subtotal * loyaltyPercent) / 100;
+
+  // 🔒 ÉTAPE 5 : Valider le coupon si fourni
+  let couponDiscount = 0;
+  let appliedCouponCode: string | null = null;
+
+  if (body.couponCode && typeof body.couponCode === "string") {
+    const coupon = await prisma.coupon.findUnique({
+      where: { code: body.couponCode.toUpperCase().trim() },
+    });
+
+    const isValid =
+      coupon &&
+      coupon.isActive &&
+      (!coupon.expiresAt || new Date(coupon.expiresAt) > new Date()) &&
+      (!coupon.minAmount || subtotal >= Number(coupon.minAmount)) &&
+      (coupon.maxUses === 0 || coupon.usedCount < coupon.maxUses);
+
+    if (isValid && coupon) {
+      if (coupon.type === "percentage") {
+        couponDiscount = Math.round(subtotal * Number(coupon.value)) / 100;
+      } else {
+        couponDiscount = Math.min(Number(coupon.value), subtotal);
+      }
+      appliedCouponCode = coupon.code;
+    }
+  }
+
+  // 🔒 ÉTAPE 6 : Valider le store credit si demandé
+  let creditApplied = 0;
+  if (body.useCredit === true) {
+    const affiliate = await prisma.affiliate.findUnique({ where: { userId } });
+    const availableCredit = affiliate ? Number(affiliate.storeCredit) : 0;
+
+    const maxUsableCredit = Math.max(
+      0,
+      subtotal + shipping + tax - loyaltyDiscount - couponDiscount
+    );
+    creditApplied = Math.min(availableCredit, maxUsableCredit);
+    creditApplied = Math.round(creditApplied * 100) / 100;
+  }
+
+  // 🔒 ÉTAPE 7 : Calculer le VRAI total côté serveur
+  const total = Math.max(
+    0,
+    Math.round((subtotal + shipping + tax - loyaltyDiscount - couponDiscount - creditApplied) * 100) / 100
+  );
+
+  // Log de debug pour identifier les tentatives de fraude
+  console.log("🔒 ORDER_SECURITY_CHECK", {
+    userId,
+    clientTotal: body.total,
+    serverTotal: total,
+    subtotal,
+    shipping,
+    tax,
+    loyaltyDiscount,
+    couponDiscount,
+    creditApplied,
+    itemsCount: orderItems.length,
+  });
+
+  // 🚨 Alerte si tentative de manipulation
+  if (body.total && Math.abs(Number(body.total) - total) > 1) {
+    console.warn("🚨 FRAUD ATTEMPT DETECTED", {
+      userId,
+      clientTotal: body.total,
+      serverTotal: total,
+      difference: Number(body.total) - total,
+    });
+
+    await prisma.auditLog.create({
+      data: {
+        userId,
+        action: "SECURITY_PRICE_MANIPULATION",
+        details: `Client sent total=${body.total}, server calculated total=${total} (subtotal=${subtotal}, shipping=${shipping}, tax=${tax})`,
+        ipAddress: req.headers.get("x-forwarded-for") || "unknown",
+        userAgent: req.headers.get("user-agent") || "unknown",
+      },
+    });
+
+    return NextResponse.json(
+      { error: "Invalid order total. Please refresh and try again." },
+      { status: 400 }
+    );
+  }
+
+  // ============ CRÉATION DE LA COMMANDE ============
+  const expiresAt = new Date(Date.now() + 30 * 60 * 1000);
 
   const order = await prisma.order.create({
     data: {
       orderNumber: `CRY-${Date.now().toString(36).toUpperCase()}`,
       userId,
       addressId: body.addressId || null,
-      subtotal,
-      shipping: Number(body.shipping || 0),
-      tax: Number(body.tax || 0),
-      total,
+      subtotal,       // ✅ Recalculé serveur
+      shipping,       // ✅ Recalculé serveur
+      tax,            // ✅ Recalculé serveur
+      total,          // ✅ Recalculé serveur
       cryptoCurrency: body.cryptoCurrency || null,
       paymentMethod: body.cryptoCurrency ? "crypto" : "card",
       expiresAt: expiresAt,
       items: {
-        create: orderItems.map((i: any) => ({
+        create: validatedItems.map((i) => ({
           productId: i.productId,
-          color: i.color || "Default",
-          quantity: Number(i.quantity),
-          price: Number(i.price),
+          color: i.color,
+          quantity: i.quantity,
+          price: i.price, // ✅ Vrai prix DB
         })),
       },
     },
@@ -235,24 +359,23 @@ export async function POST(req: NextRequest) {
     data: { isCompleted: true },
   });
 
-  // Log order creation
   await logOrderCreated(userId, order.orderNumber);
 
-  // ============ ENVOI EMAIL DE CONFIRMATION ============
+  // ============ EMAIL DE CONFIRMATION ============
   const user = await prisma.user.findUnique({ where: { id: userId } });
 
   if (user?.email) {
     sendOrderConfirmationEmail(user.email, {
       orderNumber: order.orderNumber,
       customerName: user.firstName,
-      items: orderItems.map((i: any) => ({
-        name: productMap.get(i.productId) || "Product",
+      items: validatedItems.map((i) => ({
+        name: productMap.get(i.productId)?.name || "Product",
         quantity: i.quantity,
-        price: Number(i.price),
+        price: i.price,
       })),
       subtotal,
-      shipping: Number(body.shipping || 0),
-      tax: Number(body.tax || 0),
+      shipping,
+      tax,
       total,
       cryptoCurrency: body.cryptoCurrency || undefined,
       cryptoAmount: undefined,
@@ -272,21 +395,20 @@ export async function POST(req: NextRequest) {
       sendOrderConfirmationEmail(admin.email, {
         orderNumber: `[ADMIN] ${order.orderNumber}`,
         customerName: `${user?.firstName} ${user?.lastName}`,
-        items: orderItems.map((i: any) => ({
-          name: productMap.get(i.productId) || "Product",
+        items: validatedItems.map((i) => ({
+          name: productMap.get(i.productId)?.name || "Product",
           quantity: i.quantity,
-          price: Number(i.price),
+          price: i.price,
         })),
         subtotal,
-        shipping: Number(body.shipping || 0),
-        tax: Number(body.tax || 0),
+        shipping,
+        tax,
         total,
         cryptoCurrency: body.cryptoCurrency || undefined,
         paymentMethod: body.cryptoCurrency ? "crypto" : "card",
       }).catch((err) => console.error("Admin email error:", err));
     }
   }
-
 
   // ============ AFFILIATE TRACKING ============
   const affiliateRef = req.cookies.get("affiliate_ref")?.value;
@@ -298,7 +420,7 @@ export async function POST(req: NextRequest) {
       });
 
       if (affiliate) {
-        const commission = (subtotal * 5) / 100;
+        const commission = Math.round((subtotal * 5)) / 100;
 
         await prisma.affiliateReferral.create({
           data: {
@@ -318,9 +440,7 @@ export async function POST(req: NextRequest) {
           },
         });
 
-        console.log(
-          `💰 Commission of $${commission} credited to affiliate ${affiliate.code}`
-        );
+        console.log(`💰 Commission of $${commission} credited to affiliate ${affiliate.code}`);
       }
     } catch (error) {
       console.error("Affiliate tracking error:", error);
@@ -378,9 +498,7 @@ export async function POST(req: NextRequest) {
           data: { referralRewardClaimed: true },
         });
 
-        console.log(
-          `🎁 Referral reward: $${REWARD_AMOUNT} credited to referrer and referred`
-        );
+        console.log(`🎁 Referral reward: $${REWARD_AMOUNT} credited to referrer and referred`);
       }
     } catch (error) {
       console.error("Referral reward error:", error);

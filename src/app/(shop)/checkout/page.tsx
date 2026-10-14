@@ -63,7 +63,6 @@ export default function CheckoutPage() {
   const creditApplied = useCredit ? Math.min(storeCredit, subtotal + shipping + tax - discountAmount - couponDiscount) : 0;
   const total = Math.max(0, subtotal + shipping + tax - discountAmount - creditApplied - couponDiscount);
 
-  // Détermine quels items afficher dans l'Order Summary
   const displayItems = step === "review" && savedItems.length > 0 ? savedItems : items;
 
   const applyCoupon = async () => {
@@ -176,7 +175,17 @@ export default function CheckoutPage() {
       if (!addressRes.ok) { setError("Failed to save address."); setIsProcessing(false); return; }
       const addressData = await addressRes.json();
       const savedCreditApplied = creditApplied; const savedUseCredit = useCredit;
-      const orderRes = await fetch("/api/orders", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ addressId: addressData.address.id, items: orderItems, paymentMethod: "card", shipping, tax, cryptoCurrency: null, total: total, }) });
+      const orderRes = await fetch("/api/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          addressId: addressData.address.id,
+          items: orderItems,
+          cryptoCurrency: null,
+          couponCode: appliedCoupon || undefined,  // ✅ AJOUTÉ : Coupon
+          useCredit: savedUseCredit,               // ✅ AJOUTÉ : Store credit
+        }),
+      });
       if (!orderRes.ok) { setError("Failed."); setIsProcessing(false); return; }
       const orderData = await orderRes.json();
       if (savedUseCredit && savedCreditApplied > 0) { await fetch("/api/affiliate/withdraw", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ type: "use_credit", amount: savedCreditApplied }) }); loadStoreCredit(); }
@@ -186,7 +195,6 @@ export default function CheckoutPage() {
       if (orderData.order.expiresAt) {
         setOrderExpiresAt(orderData.order.expiresAt);
       }
-      // 📦 Sauvegarder avant de vider le panier
       setSavedItems([...items]);
       clearCart();
       setIsProcessing(false);
@@ -215,7 +223,17 @@ export default function CheckoutPage() {
       const savedCrypto = selectedCrypto; const savedCreditApplied = creditApplied; const savedUseCredit = useCredit;
       const savedCoupon = appliedCoupon;
       setSavedTotalRef(savedTotal);
-      const orderRes = await fetch("/api/orders", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ addressId: addressData.address.id, items: orderItems, cryptoCurrency: savedCrypto, shipping, tax: savedTax, total: savedTotal, subtotal: savedSubtotal, }) });
+      const orderRes = await fetch("/api/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          addressId: addressData.address.id,
+          items: orderItems,
+          cryptoCurrency: savedCrypto,
+          couponCode: savedCoupon || undefined,   // ✅ AJOUTÉ : Coupon
+          useCredit: savedUseCredit,              // ✅ AJOUTÉ : Store credit
+        }),
+      });
       if (!orderRes.ok) { setError("Failed."); setIsProcessing(false); return; }
       const orderData = await orderRes.json();
       const orderId = orderData.order.id; const newOrderNumber = orderData.order.orderNumber;
@@ -226,7 +244,6 @@ export default function CheckoutPage() {
       if (savedCoupon) { await fetch("/api/coupons/use", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code: savedCoupon }) }); }
       if (savedTotal === 0) { await fetch(`/api/orders/${orderId}/payment`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ paymentId: "store_credit", cryptoAddress: "store_credit", cryptoAmount: "0" }) }); await fetch(`/api/orders/${orderId}/confirm`, { method: "PUT" }); }
       setOrderNumber(newOrderNumber); setOrderTotal(savedTotal); setOrderSubtotal(savedSubtotal); setOrderTax(savedTax);
-      // 📦 Sauvegarder avant de vider le panier
       setSavedItems([...items]);
       clearCart();
       if (savedTotal > 0) {
@@ -313,7 +330,6 @@ export default function CheckoutPage() {
               <h2 className="text-2xl font-heading font-bold">Order Confirmed!</h2>
               {orderNumber && <p className="text-text-primary font-mono text-lg">Order #{orderNumber}</p>}
 
-              {/* ⏰ COMPTE À REBOURS - Paiement crypto en attente */}
               {!isExpired && timeLeft && orderTotal > 0 && paymentMethod === "crypto" && paymentUrl && (
                 <div className={`border rounded-lg p-4 ${
                   timeLeft.minutes < 5 
@@ -343,7 +359,6 @@ export default function CheckoutPage() {
                 </div>
               )}
 
-              {/* ⏰ COMMANDE EXPIRÉE AVEC REDIRECTION */}
               {isExpired && (
                 <div className="bg-error/10 border border-error/30 rounded-lg p-6 space-y-4">
                   <div className="flex items-center gap-3">
