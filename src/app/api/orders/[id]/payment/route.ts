@@ -13,10 +13,7 @@ const paymentSchema = z.object({
 });
 
 // ============ SERVICE DE CONVERSION CRYPTO (API RÉELLE COINGECKO) ============
-async function getCryptoAmount(
-  audAmount: number,
-  currency: string
-): Promise<string> {
+async function getCryptoAmount(audAmount: number, currency: string): Promise<string> {
   const coinIds: Record<string, string> = {
     BTC: "bitcoin",
     ETH: "ethereum",
@@ -34,12 +31,9 @@ async function getCryptoAmount(
       { cache: "no-store" }
     );
 
-    if (!cryptoRes.ok) {
-      throw new Error(`CoinGecko error: ${cryptoRes.status}`);
-    }
+    if (!cryptoRes.ok) throw new Error(`CoinGecko error: ${cryptoRes.status}`);
 
     const cryptoData = await cryptoRes.json();
-
     const cryptoPriceAUD = cryptoData?.[coinId]?.aud;
 
     if (
@@ -50,48 +44,20 @@ async function getCryptoAmount(
       throw new Error("Invalid crypto price");
     }
 
-    const cryptoAmount = audAmount / cryptoPriceAUD;
-
-    return cryptoAmount.toFixed(8);
+    return (audAmount / cryptoPriceAUD).toFixed(8);
   } catch (error) {
     console.error("Crypto price fetch failed:", error);
 
     const fallbackPricesInAUD: Record<string, number> = {
-      BTC: 130000,
-      ETH: 4500,
-      USDT: 1.51,
-      USDC: 1.51,
-      TRX: 0.46,
-      SOL: 240,
+      BTC: 130000, ETH: 4500, USDT: 1.51,
+      USDC: 1.51, TRX: 0.46, SOL: 240,
     };
 
     const estimatedPriceAUD = fallbackPricesInAUD[currency];
+    if (!estimatedPriceAUD || estimatedPriceAUD <= 0) return "0.00000000";
 
-    if (!estimatedPriceAUD || estimatedPriceAUD <= 0) {
-      return "0.00000000";
-    }
-
-    const cryptoAmount = audAmount / estimatedPriceAUD;
-
-    return cryptoAmount.toFixed(8);
+    return (audAmount / estimatedPriceAUD).toFixed(8);
   }
-}
-
-    
-
-// ============ VÉRIFICATION EXPIRATION ============
-async function isOrderExpired(orderId: string): Promise<boolean> {
-  const order = await prisma.order.findUnique({
-    where: { id: orderId },
-    select: { expiresAt: true, status: true },
-  });
-
-  if (!order || !order.expiresAt) return false;
-  
-  const expiryDate = new Date(order.expiresAt);
-  const now = new Date();
-  
-  return now > expiryDate;
 }
 
 // ============ FONCTIONS UTILITAIRES ============
@@ -122,7 +88,7 @@ async function authenticateAndAuthorize(
       cryptoCurrency: true,
       paymentId: true,
       status: true,
-      expiresAt: true, // ⏰ AJOUTÉ
+      expiresAt: true,
     },
   });
 
@@ -158,32 +124,37 @@ export async function PUT(
   try {
     const { id } = await params;
 
-    // ===== VÉRIFICATION EXPIRATION AVANT TOUT =====
-    const expired = await isOrderExpired(id);
-    if (expired) {
-      // Annuler la commande expirée
+    // ✅ CORRECTION 1 : AUTH + AUTORISATION EN PREMIER (avant tout)
+    const auth = await authenticateAndAuthorize(req, id);
+    if (auth instanceof NextResponse) return auth;
+    const { order } = auth;
+
+    // ✅ CORRECTION 2 : Vérification expiration APRÈS auth
+    const now = new Date();
+    const isExpired =
+      order.expiresAt &&
+      now > new Date(order.expiresAt) &&
+      order.paymentStatus !== "CONFIRMED";
+
+    if (isExpired && order.status !== "CANCELLED") {
+      // Seul le propriétaire ou admin peut "provoquer" l'annulation
       await prisma.order.update({
         where: { id },
         data: {
           status: "CANCELLED",
           paymentStatus: "EXPIRED",
-          notes: "Commande annulée automatiquement - délai de paiement dépassé (30 MIN)",
+          notes: "Commande annulée automatiquement - délai de paiement dépassé (30 minutes)",
         },
       });
 
       return NextResponse.json(
         {
-          error: "Cette commande a expiré. Le délai de paiement d'une heure est dépassé.",
+          error: "Cette commande a expiré. Le délai de paiement de 30 minutes est dépassé.",
           code: "ORDER_EXPIRED",
         },
         { status: 410 }
       );
     }
-
-    // ===== AUTH + AUTORISATION =====
-    const auth = await authenticateAndAuthorize(req, id);
-    if (auth instanceof NextResponse) return auth;
-    const { order } = auth;
 
     // ===== PROTECTION IDEMPOTENCE =====
     const body = await req.json();
@@ -191,7 +162,11 @@ export async function PUT(
 
     if (idempotencyKey) {
       const existingLog = await prisma.auditLog.findFirst({
-        where: { action: "PAYMENT_UPDATED", details: { contains: idempotencyKey } },
+        where: {
+          action: "PAYMENT_UPDATED",
+          userId: order.userId,
+          details: { contains: idempotencyKey },
+        },
       });
       if (existingLog) {
         return NextResponse.json(
@@ -245,12 +220,11 @@ export async function PUT(
 
     const { paymentId, cryptoAddress } = parsed.data;
 
-    // ===== CALCUL DU MONTANT CRYPTO VIA API RÉELLE =====
+    // ===== CALCUL DU MONTANT CRYPTO =====
     const audAmount = Number(order.total);
     const currency = order.cryptoCurrency || "USDT";
     const cryptoAmount = await getCryptoAmount(audAmount, currency);
 
-    // 🔍 DEBUG - Vérifier la devise utilisée
     console.log("PAYMENT_DEBUG", {
       currency,
       audAmount,
@@ -259,7 +233,7 @@ export async function PUT(
       timestamp: new Date().toISOString(),
     });
 
-    // ===== MISE À JOUR AVEC TRANSACTION PRISMA (ATOMICITÉ) =====
+    // ===== MISE À JOUR AVEC TRANSACTION PRISMA =====
     const updatedOrder = await prisma.$transaction(async (tx) => {
       const currentOrder = await tx.order.findUnique({
         where: { id },
@@ -280,12 +254,12 @@ export async function PUT(
           cryptoAddress,
           cryptoAmount,
           paymentStatus: "WAITING_CONFIRMATION",
-          expiresAt: new Date(Date.now() + 30 * 60 * 1000), // ⏰ RÉINITIALISER L'EXPIRATION À +30MIN
+          expiresAt: new Date(Date.now() + 30 * 60 * 1000),
         },
       });
     });
 
-    // ===== AUDIT LOG ENRICHI =====
+    // ===== AUDIT LOG =====
     const ip = req.headers.get("x-forwarded-for") || "unknown";
     const userAgent = req.headers.get("user-agent") || "unknown";
 
